@@ -102,9 +102,13 @@ it calculates the version number.
 The build server steps are like this:
 
 ````
-PLIST_VERSION=$(PlistBuddy -c "Print: CFBundleShortVersionString" Info.plist)
-NEW_VERSION=$(version-update $PLIST_VERSION +patch)
-PlistBuddy -c "Set: CFBundleShortVersionString ${NEW_VERSION}" Info.plist
+1. Start Integration
+2. Xcode Builds, runs a run script phase as part of build process
+3. git checkout -- Info.plist
+4. PLIST_VERSION=$(PlistBuddy -c "Print: CFBundleShortVersionString" Info.plist)
+5. NEW_VERSION=$(version-update $PLIST_VERSION +patch)
+6. PlistBuddy -c "Set: CFBundleShortVersionString ${NEW_VERSION}" Info.plist
+7. Complete Build
 ````
 
 By using the CFBundleShortVersionString and passing it to version-update,
