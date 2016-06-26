@@ -6,25 +6,33 @@ Increments a version number for you.
 
 ## Incrementing Major
 
-update-version 1.2.3 +major
->>2.2.3
+````
+$update-version 1.2.3 +major
+#2.2.3
+````
 
 ## Incrementing Minor
 
-update-version 1.2.3 +minor
->>1.3.3
+````
+$update-version 1.2.3 +minor
+#1.3.3
+````
 
 ## Incrementing Patch
 
-update-version 1.2.3 +patch
->>1.2.4
+````
+$update-version 1.2.3 +patch
+#1.2.4
+````
 
 # Version Tags
 
 Versions can contain tags and the version updater will leave those intact.
 
-update-version 1.2.3-alpha1 +patch
->>1.2.4-alpha1
+````
+$update-version 1.2.3-alpha1 +patch
+#1.2.4-alpha1
+````
 
 # Modifiers
 
@@ -32,17 +40,25 @@ update-version 1.2.3-alpha1 +patch
 
 Components of a version can be reset to zero with ~
 
-update-version 1.2.~
->>1.2.0
+````
+$update-version 1.2.~
+#1.2.0
+````
 
-update-version 1.~.~
->>1.0.0
+````
+$update-version 1.~.~
+#1.0.0
+````
 
-update-version ~.~.~
->>0.0.0
+````
+$update-version ~.~.~
+#0.0.0
+````
 
-update-version 1.~.3
->>1.0.3
+````
+$update-version 1.~.3
+#1.0.3
+````
 
 ## Shebang Modifier
 
@@ -52,14 +68,20 @@ This is a way to force a version number to something you want.
 
 It overrides +patch, +minor, and +major.
 
-update-version !1.0.0
->> 1.0.0
+````
+$update-version !1.0.0
+#1.0.0
+````
 
-update-version !1.2.3 +patch
->> 1.2.3
+````
+$update-version !1.2.3 +patch
+#1.2.3
+````
 
-update-version !1.~.~ +patch
->> 1.0.0
+````
+$update-version !1.~.~ +patch
+#1.0.0
+````
 
 # Use Case
 
