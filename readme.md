@@ -105,7 +105,7 @@ By using the CFBundleShortVersionString and passing it to version-update,
 it allows for the Info.plist to override the version update if it needs to be
 set manually.
 
-For example, setting minor version and restting the patch to 0 in the Plist would
+For example, setting minor version and resetting the patch to 0 in the Plist would
 simply require this ````1.2.~````
 
 Or setting the major and setting everything to 0: ````!2.0.0````
