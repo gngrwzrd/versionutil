@@ -95,9 +95,9 @@ My personal use case is Xcode Server and Continuous Integration.
 The build server increments the patch component every time a successful integration runs.
 Incrementing major or minor requires human intervention.
 
-I wanted a way to manually set the version number. This script was created to allow
-to customizing the Info.plist CFBundleShortVersionString and control what happens
-on the build server when it calculates the version number.
+This script was created to allow to customizing the Info.plist
+CFBundleShortVersionString and control what happens on the build server when
+it calculates the version number.
 
 The build server steps are like this:
 
