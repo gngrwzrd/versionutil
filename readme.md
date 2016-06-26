@@ -34,6 +34,11 @@ $update-version 1.2.3-alpha1 +patch
 #1.2.4-alpha1
 ````
 
+````
+$update-version 1.2.3+alpha.04 +minor
+#1.3.3+alpha.04
+````
+
 # Modifiers
 
 ## Zero Reset Modifier
