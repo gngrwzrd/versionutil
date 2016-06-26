@@ -103,7 +103,7 @@ The build server steps are like this:
 
 ````
 1. Start Integration
-2. Xcode Builds, runs a run script phase as part of build process
+2. Xcode Builds, runs a run script phase as part of build process:
 3. git checkout -- Info.plist
 4. PLIST_VERSION=$(PlistBuddy -c "Print: CFBundleShortVersionString" Info.plist)
 5. NEW_VERSION=$(version-update $PLIST_VERSION +patch)
