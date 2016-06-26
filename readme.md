@@ -104,7 +104,7 @@ The build server steps are like this:
 ````
 version=$(PlistBuddy -c "Print: CFBundleShortVersionString" Info.plist)
 version-update $VERSION +patch
-PlistBuddy -c "Write: CFBundleShortVersionString" Info.plist
+PlistBuddy -c "Set: CFBundleShortVersionString" Info.plist
 ````
 
 By using the CFBundleShortVersionString and passing it to version-update,
