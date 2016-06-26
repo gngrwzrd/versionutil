@@ -106,6 +106,15 @@ it allows for the Info.plist to override the version update if it needs to be
 set manually.
 
 For example, setting minor version and resetting the patch to 0 in the Plist would
-simply require this ````1.2.~````
+simply require this:
 
-Or setting the major and setting everything to 0: ````!2.0.0````
+````
+<key>CFBundleShortVersionString</key>
+<string>1.2.~</string>
+````
+
+Or setting the major and setting everything to 0:
+````
+<key>CFBundleShortVersionString</key>
+<string>!2.0.0</string>
+````
