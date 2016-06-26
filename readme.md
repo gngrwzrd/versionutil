@@ -123,3 +123,12 @@ Or setting the major and setting everything to 0:
 <key>CFBundleShortVersionString</key>
 <string>!2.0.0</string>
 ````
+
+# Unit Tests
+
+Run unit tests with:
+
+````
+./update-version --test
+````
+
