@@ -102,9 +102,9 @@ it calculates the version number.
 The build server steps are like this:
 
 ````
-version=$(PlistBuddy -c "Print: CFBundleShortVersionString" Info.plist)
-version-update $VERSION +patch
-PlistBuddy -c "Set: CFBundleShortVersionString" Info.plist
+PLIST_VERSION=$(PlistBuddy -c "Print: CFBundleShortVersionString" Info.plist)
+NEW_VERSION=$(version-update $PLIST_VERSION +patch)
+PlistBuddy -c "Set: CFBundleShortVersionString ${NEW_VERSION}" Info.plist
 ````
 
 By using the CFBundleShortVersionString and passing it to version-update,
