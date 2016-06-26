@@ -25,6 +25,13 @@ $update-version 1.2.3 +patch
 #1.2.4
 ````
 
+## Incrementing Multiple
+
+````
+$update-version 1.2.3 +patch +major +minor
+#2.3.4
+````
+
 # Version Tags
 
 Versions can contain tags and the version updater will leave those intact.
