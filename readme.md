@@ -84,9 +84,9 @@ $update-version 1.4.~ +patch
 #1.4.0
 ````
 
-## Shebang Modifier
+## Force Version Modifier
 
-The shebang modifer returns the version without incrementing anything.
+The force modifer returns the version without incrementing anything.
 
 This is a way to force a version number to something you want.
 
@@ -110,6 +110,7 @@ $update-version !1.~.~ +patch
 My personal use case is Xcode Server and Continuous Integration.
 
 The build server increments the patch component every time a successful integration runs.
+
 Incrementing major or minor requires human intervention.
 
 This script was created to allow customizing the Info.plist
@@ -121,11 +122,14 @@ The build server steps are like this:
 ````
 1. Start Integration
 2. Xcode Builds, runs a run script phase as part of build process:
-3. git checkout -- Info.plist
-4. PLIST_VERSION=$(PlistBuddy -c "Print: CFBundleShortVersionString" Info.plist)
-5. NEW_VERSION=$(version-update $PLIST_VERSION +patch)
-6. PlistBuddy -c "Set: CFBundleShortVersionString ${NEW_VERSION}" Info.plist
+
+git checkout -- Info.plist
+PLIST_VERSION=$(PlistBuddy -c "Print: CFBundleShortVersionString" Info.plist)
+NEW_VERSION=$(version-update $PLIST_VERSION +patch)
+PlistBuddy -c "Set: CFBundleShortVersionString ${NEW_VERSION}" Info.plist
+
 7. Complete Build
+8. Release App
 ````
 
 By using the CFBundleShortVersionString and passing it to version-update,
