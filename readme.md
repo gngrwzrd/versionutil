@@ -48,6 +48,8 @@ $update-version 1.2.3+alpha.04 +minor
 
 # Modifiers
 
+Modifiers override +major +minor and +patch.
+
 ## Zero Reset Modifier
 
 Components of a version can be reset to zero with ~
@@ -55,6 +57,11 @@ Components of a version can be reset to zero with ~
 ````
 $update-version 1.2.~
 #1.2.0
+````
+
+````
+$update-version 1.~.2 +minor
+#1.0.2
 ````
 
 ````
@@ -72,13 +79,16 @@ $update-version 1.~.3
 #1.0.3
 ````
 
+````
+$update-version 1.4.~ +patch
+#1.4.0
+````
+
 ## Shebang Modifier
 
 The shebang modifer returns the version without incrementing anything.
 
 This is a way to force a version number to something you want.
-
-It overrides +patch, +minor, and +major.
 
 ````
 $update-version !1.0.0
