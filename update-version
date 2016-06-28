@@ -29,6 +29,13 @@
 ## update-version 1.~.3-alpha1 +patch #> 1.0.4-alpha1
 ## update-version !1.~.~ #> 1.0.0
 ##
+## ## Printing Version Info
+##
+## update-version 1.2.3 --print-minor #> 2
+## update-version 1.2.3 --print-major #> 1
+## update-version 1.2.3 --print-patch #> 3
+## update-version 1.2.3-alpha1 --print-tag #> -alpha1
+##
 
 #modifier characters
 FORCE_MODIFIER="!"
@@ -542,6 +549,18 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	output=$(./$0 "~.~.~" +patch +minor +major)
 	assert $output "0.0.0"
 
+	output=$(./$0  "1.2.3" --print-patch)
+	assert $output "3"
+
+	output=$(./$0  "1.2.3" --print-major)
+	assert $output "1"
+
+	output=$(./$0  "1.2.3" --print-minor)
+	assert $output "2"
+
+	output=$(./$0  "1.2.3-alpha1.0934" --print-tag)
+	assert $output "-alpha1.0934"
+
 	echo "all tests passed"
 	exit
 fi
@@ -554,6 +573,12 @@ VERSION=$1
 INC_MAJOR=false
 INC_MINOR=false
 INC_PATCH=false
+
+#print vars
+PRINT_MAJOR=false
+PRINT_MINOR=false
+PRINT_PATCH=false
+PRINT_TAG=false
 
 #parse args
 for i in "$@"
@@ -568,6 +593,22 @@ do
 	+patch|^patch)
 		INC_PATCH=true
 		;;
+	--print-major)
+		PRINT_MAJOR=true
+		break
+		;;
+	--print-minor)
+		PRINT_MINOR=true
+		break
+		;;
+	--print-patch)
+		PRINT_PATCH=true
+		break
+		;;
+	--print-tag)
+		PRINT_TAG=true
+		break
+		;;
 	esac
 done
 
@@ -577,6 +618,27 @@ MAJOR=$(getMajor $VERSION)
 MINOR=$(getMinor $VERSION)
 PATCH=$(getPatch $VERSION)
 TAG=$(getTag $VERSION)
+
+if [ "$PRINT_MAJOR" = true ]; then
+	echo $MAJOR
+	exit 0;
+fi
+
+if [ "$PRINT_MINOR" = true ]; then
+	echo $MINOR
+	exit 0
+fi
+
+if [ "$PRINT_PATCH" = true ]; then
+	echo $PATCH
+	exit 0
+fi
+
+if [ "$PRINT_TAG" = true ]; then
+	echo $TAG
+	exit 0
+fi
+
 NEW_MAJOR=$MAJOR
 NEW_MINOR=$MINOR
 NEW_PATCH=$PATCH
