@@ -1,8 +1,36 @@
 # Version Updater
 
-Increments a version number for you.
+Increments or prints a version number for you.
 
 # Usage
+
+## Printing Major
+
+````
+$update-version 1.2.3 --print-major
+#1
+````
+
+## Printing Minor
+
+````
+$update-version 1.2.3 --print-minor
+#2
+````
+
+## Printing Patch
+
+````
+$update-version 1.2.3 --print-patch
+#3
+````
+
+## Printing Tag
+
+````
+$update-version 1.2.3-alpha-09 --print-tag
+#-alpha-09
+````
 
 ## Incrementing Major
 
