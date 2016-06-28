@@ -141,7 +141,7 @@ $update-version !1.~.~ +patch
 
 ## Printing With Modifiers
 
-Components modifiers are applied first before printing them.
+Component modifiers are applied first before printing them.
 
 ````
 $update-version 1.1.~ --print-patch
