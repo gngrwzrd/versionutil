@@ -561,6 +561,15 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	output=$(./$0  "1.2.3-alpha1.0934" --print-tag)
 	assert $output "-alpha1.0934"
 
+	output=$(./$0 "1.~.3" --print-minor)
+	assert $output "0"
+
+	output=$(./$0 "!1.~.2" --print-minor +minor)
+	assert $output "0"
+
+	output=$(./$0 "1.1.~" --print-patch +patch)
+	assert $output "0"
+
 	echo "all tests passed"
 	exit
 fi
@@ -619,26 +628,6 @@ MINOR=$(getMinor $VERSION)
 PATCH=$(getPatch $VERSION)
 TAG=$(getTag $VERSION)
 
-if [ "$PRINT_MAJOR" = true ]; then
-	echo $MAJOR
-	exit 0;
-fi
-
-if [ "$PRINT_MINOR" = true ]; then
-	echo $MINOR
-	exit 0
-fi
-
-if [ "$PRINT_PATCH" = true ]; then
-	echo $PATCH
-	exit 0
-fi
-
-if [ "$PRINT_TAG" = true ]; then
-	echo $TAG
-	exit 0
-fi
-
 NEW_MAJOR=$MAJOR
 NEW_MINOR=$MINOR
 NEW_PATCH=$PATCH
@@ -677,6 +666,26 @@ fi
 #increment patch if shebang isn't present
 if [ "$INC_PATCH" = "true" ] && [ -z $SHEBANG ] && [ -z $PATCH_ZEROED ]; then
 	NEW_PATCH=$(($NEW_PATCH + 1))
+fi
+
+if [ "$PRINT_MAJOR" = true ]; then
+	echo $NEW_MAJOR
+	exit 0;
+fi
+
+if [ "$PRINT_MINOR" = true ]; then
+	echo $NEW_MINOR
+	exit 0
+fi
+
+if [ "$PRINT_PATCH" = true ]; then
+	echo $NEW_PATCH
+	exit 0
+fi
+
+if [ "$PRINT_TAG" = true ]; then
+	echo $TAG
+	exit 0
 fi
 
 #create new version
