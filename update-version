@@ -570,6 +570,12 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	output=$(./$0 "1.1.~" --print-patch +patch)
 	assert $output "0"
 
+	output=$(./$0 "1.2.3" +patch --print-patch)
+	assert $output "4"
+
+	output=$(./$0 "1.2.3" --print-patch +patch)
+	assert $output "4"
+
 	echo "all tests passed"
 	exit
 fi
@@ -604,19 +610,15 @@ do
 		;;
 	--print-major)
 		PRINT_MAJOR=true
-		break
 		;;
 	--print-minor)
 		PRINT_MINOR=true
-		break
 		;;
 	--print-patch)
 		PRINT_PATCH=true
-		break
 		;;
 	--print-tag)
 		PRINT_TAG=true
-		break
 		;;
 	esac
 done

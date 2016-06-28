@@ -4,6 +4,12 @@ Increments or prints a version number for you.
 
 # Usage
 
+## Printing Components
+
+You can print individual components.
+
+You can't print more than one individual component.
+
 ## Printing Major
 
 ````
@@ -131,6 +137,25 @@ $update-version !1.2.3 +patch
 ````
 $update-version !1.~.~ +patch
 #1.0.0
+````
+
+## Printing With Modifiers
+
+Components modifiers are applied first before printing them.
+
+````
+$update-version 1.1.~ --print-patch
+#0
+````
+
+````
+$update-version !1.~.~ --print-major
+#1
+````
+
+````
+$update-version 1.2.3 --print-patch +patch
+#4
 ````
 
 # Use Case
