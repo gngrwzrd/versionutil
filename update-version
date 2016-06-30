@@ -124,13 +124,39 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	echo "Testing..."
 
 	VERSION='1.2.3'
+	SHEBANG=$(getShebang $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
+	assert $SHEBANG ''
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '3'
+	assert $TAG ''
+
+	VERSION='10.20.30'
+	SHEBANG=$(getShebang $VERSION)
+	MAJOR=$(getMajor $VERSION)
+	MINOR=$(getMinor $VERSION)
+	PATCH=$(getPatch $VERSION)
+	TAG=$(getTag $VERSION)
+	assert $SHEBANG ''
+	assert $MAJOR '10'
+	assert $MINOR '20'
+	assert $PATCH '30'
+	assert $TAG ''
+
+	VERSION='100.200.300'
+	SHEBANG=$(getShebang $VERSION)
+	MAJOR=$(getMajor $VERSION)
+	MINOR=$(getMinor $VERSION)
+	PATCH=$(getPatch $VERSION)
+	TAG=$(getTag $VERSION)
+	assert $SHEBANG ''
+	assert $MAJOR '100'
+	assert $MINOR '200'
+	assert $PATCH '300'
 	assert $TAG ''
 
 	VERSION='!1.2.3'
