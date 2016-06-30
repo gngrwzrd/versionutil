@@ -600,6 +600,8 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	output=$(./$0 "1.2.3" --print-patch +patch)
 	assert $output "4"
 
+	#TODO: add tests that should fail
+
 	echo "all tests passed"
 	exit
 fi
