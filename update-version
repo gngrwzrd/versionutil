@@ -107,7 +107,7 @@ getTag() {
 	version=$1
 	tag=$(echo $version | python -c '
 import re,sys;
-patch=re.search("('"${FORCE_MODIFIER}"')?([0-9]*'"${ZERO_MODIFIER}"'?)\.([0-9]*'"${ZERO_MODIFIER}"'?)\.([0-9]*'"${ZERO_MODIFIER}"'?)([\-|\+0-9a-zA-Z\.\-\_]*)?",sys.stdin.read());
+patch=re.search("('"${FORCE_MODIFIER}"')?([0-9]*'"${ZERO_MODIFIER}"'?)\.([0-9]*'"${ZERO_MODIFIER}"'?)\.([0-9]*'"${ZERO_MODIFIER}"'?)([\.\_\-\+0-9a-zA-Z]*)?",sys.stdin.read());
 print patch.group(5)')
 	echo $tag
 }
