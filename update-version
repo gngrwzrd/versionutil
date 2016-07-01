@@ -69,8 +69,9 @@ getMajor() {
 	fi
 	version=$1
 	major=$(echo $version | python -c '
-import re,sys;patch=re.search("^('"${FORCE_MODIFIER}"')?([0-9]*'"${ZERO_MODIFIER}"'?)\.",sys.stdin.read());
-print patch.group(2)')
+import re,sys;patch=re.search("^('"${FORCE_MODIFIER}"')?([0-9]*|'"${ZERO_MODIFIER}"'?)\.",sys.stdin.read());
+if not patch: print ''
+else: print patch.group(2)')
 	echo $major
 }
 
@@ -81,8 +82,9 @@ getMinor() {
 	fi
 	version=$1
 	minor=$(echo $version | python -c '
-import re,sys;patch=re.search("^('"${FORCE_MODIFIER}"')?([0-9]*'"${ZERO_MODIFIER}"'?)\.([0-9]*'"${ZERO_MODIFIER}"'?)\.",sys.stdin.read());
-print patch.group(3)')
+import re,sys;patch=re.search("^('"${FORCE_MODIFIER}"')?([0-9]*|'"${ZERO_MODIFIER}"'?)\.([0-9]*|'"${ZERO_MODIFIER}"'?)\.",sys.stdin.read());
+if not patch: print ''
+else: print patch.group(3)')
 	echo $minor
 }
 
@@ -120,8 +122,35 @@ assert() {
 	fi
 }
 
+assert_fail() {
+	echo "1: $1"
+	echo "2: $2"
+	echo "3: $3"
+	echo "assert $2 == $3"
+	if [ "$1" == "$2" ]; then
+		echo "Expected failure didn't fail. $1 != $2"
+		exit 1
+	fi
+}
+
 if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
-	echo "Testing..."
+	echo "Testing patterns that should fail..."
+
+	VERSION="1~.2.3"
+	MAJOR=$(getMajor $VERSION)
+	assert_fail "$MAJOR" '1~' 'false'
+
+	#exit 0
+
+	VERSION="~1.2.3"
+	MAJOR=$(getMajor $VERSION)
+	assert_fail "$MAJOR" '~1' ''
+
+	VERSION="1.~2.3"
+	MINOR=$(getMinor $VERSION)
+	assert_fail "$MINOR" '~2' ''
+
+	echo "Testing patterns that should pass..."
 
 	VERSION='1.2.3'
 	SHEBANG=$(getShebang $VERSION)
@@ -483,6 +512,8 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '.129FAD'
 
+	echo "Testing script output..."
+
 	output=$(./$0 1.2.3)
 	assert $output "1.2.3"
 
@@ -599,8 +630,6 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 
 	output=$(./$0 "1.2.3" --print-patch +patch)
 	assert $output "4"
-
-	#TODO: add tests that should fail
 
 	echo "all tests passed"
 	exit
