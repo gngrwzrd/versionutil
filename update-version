@@ -712,19 +712,19 @@ MINOR_ZEROED=''
 PATCH_ZEROED=''
 
 #check for ~ to reset major to 0
-if [ "${MAJOR}" = "${ZERO_MODIFIER}" ]; then
+if [ "$MAJOR" = "$ZERO_MODIFIER" ]; then
 	NEW_MAJOR='0'
 	MAJOR_ZEROED='true'
 fi
 
 #check for ~ to reset minor to 0
-if [ "${MINOR}" = "${ZERO_MODIFIER}" ]; then
+if [ "$MINOR" = "$ZERO_MODIFIER" ]; then
 	NEW_MINOR='0'
 	MINOR_ZEROED='true'
 fi
 
 #check for ~ to reset patch to 0
-if [ "${NEW_PATCH}" = "${ZERO_MODIFIER}" ]; then
+if [ "$NEW_PATCH" = "$ZERO_MODIFIER" ]; then
 	NEW_PATCH='0'
 	PATCH_ZEROED='true'
 fi
@@ -765,8 +765,8 @@ if [ "$PRINT_TAG" = true ]; then
 fi
 
 #create new version
-if [ "${TAG}" ]; then
-	echo "${NEW_MAJOR}.${NEW_MINOR}.${NEW_PATCH}${TAG}"
+if [ "$TAG" ]; then
+	echo "$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH$TAG"
 else
-	echo "${NEW_MAJOR}.${NEW_MINOR}.${NEW_PATCH}"
+	echo "$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH"
 fi
