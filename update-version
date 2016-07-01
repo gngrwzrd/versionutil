@@ -54,11 +54,12 @@ getShebang() {
 		echo ''
 		return
 	fi
+	shebang=''
 	version=$1
-	shebang=$(echo $version | python -c '
-import re,sys;patch=re.search("^('"${FORCE_MODIFIER}"')?",sys.stdin.read());
-if patch.group(1): print patch.group(1)
-else: print ''')
+	regex="^(!)?"
+	if [[ $version =~ $regex ]]; then
+		shebang="${BASH_REMATCH[1]}"
+	fi
 	echo $shebang
 }
 
@@ -67,11 +68,12 @@ getMajor() {
 		echo ''
 		return
 	fi
+	major=''
 	version=$1
-	major=$(echo $version | python -c '
-import re,sys;patch=re.search("^('"${FORCE_MODIFIER}"')?([0-9]*|'"${ZERO_MODIFIER}"'?)\.",sys.stdin.read());
-if not patch: print ''
-else: print patch.group(2)')
+	regex="^(!)?([0-9]*|~?)\."
+	if [[ $version =~ $regex ]]; then
+		major="${BASH_REMATCH[2]}"
+	fi
 	echo $major
 }
 
@@ -80,11 +82,12 @@ getMinor() {
 		echo ''
 		return
 	fi
+	minor=''
 	version=$1
-	minor=$(echo $version | python -c '
-import re,sys;patch=re.search("^('"${FORCE_MODIFIER}"')?([0-9]*|'"${ZERO_MODIFIER}"'?)\.([0-9]*|'"${ZERO_MODIFIER}"'?)\.",sys.stdin.read());
-if not patch: print ''
-else: print patch.group(3)')
+	regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\."
+	if [[ $version =~ $regex ]]; then
+		minor="${BASH_REMATCH[3]}"
+	fi
 	echo $minor
 }
 
@@ -93,11 +96,12 @@ getPatch() {
 		echo ''
 		return
 	fi
+	patch=''
 	version=$1
-	patch=$(echo $version | python -c '
-import re,sys;
-patch=re.search("^('"${FORCE_MODIFIER}"')?([0-9]*'"${ZERO_MODIFIER}"'?)\.([0-9]*'"${ZERO_MODIFIER}"'?)\.([0-9]*'"${ZERO_MODIFIER}"'?)",sys.stdin.read());
-print patch.group(4)')
+	regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)"
+	if [[ $version =~ $regex ]]; then
+		patch="${BASH_REMATCH[4]}"
+	fi
 	echo $patch
 }
 
@@ -106,11 +110,12 @@ getTag() {
 		echo ''
 		return
 	fi
+	tag=''
 	version=$1
-	tag=$(echo $version | python -c '
-import re,sys;
-patch=re.search("('"${FORCE_MODIFIER}"')?([0-9]*'"${ZERO_MODIFIER}"'?)\.([0-9]*'"${ZERO_MODIFIER}"'?)\.([0-9]*'"${ZERO_MODIFIER}"'?)([\.\_\-\+0-9a-zA-Z]*)?",sys.stdin.read());
-print patch.group(5)')
+	regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)([-+0-9a-zA-Z\_\.]*)?"
+	if [[ $version =~ $regex ]]; then
+		tag="${BASH_REMATCH[5]}"
+	fi
 	echo $tag
 }
 
@@ -123,9 +128,6 @@ assert() {
 }
 
 assert_fail() {
-	echo "1: $1"
-	echo "2: $2"
-	echo "3: $3"
 	echo "assert $2 == $3"
 	if [ "$1" == "$2" ]; then
 		echo "Expected failure didn't fail. $1 != $2"
@@ -138,17 +140,19 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 
 	VERSION="1~.2.3"
 	MAJOR=$(getMajor $VERSION)
-	assert_fail "$MAJOR" '1~' 'false'
-
-	#exit 0
-
-	VERSION="~1.2.3"
-	MAJOR=$(getMajor $VERSION)
-	assert_fail "$MAJOR" '~1' ''
+	assert "$MAJOR" ''
 
 	VERSION="1.~2.3"
 	MINOR=$(getMinor $VERSION)
-	assert_fail "$MINOR" '~2' ''
+	assert "$MINOR" ''
+
+	VERSION="1.2~.3"
+	MINOR=$(getMinor $VERSION)
+	assert "$MINOR" ''
+
+	VERSION="~1.2.3"
+	MAJOR=$(getMajor $VERSION)
+	assert "$MAJOR" ''
 
 	echo "Testing patterns that should pass..."
 
@@ -199,7 +203,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $MINOR '2'
 	assert $PATCH '3'
 	assert $TAG ''
-
+	
 	VERSION='!1.2.3-alpha'
 	SHEBANG=$(getShebang $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -512,6 +516,16 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '.129FAD'
 
+	echo "Testing script output fail..."
+
+	output=$(./$0 'test')
+	assert "$?" "1"
+
+	output=$(./$0 '!1.2 +patch')
+	assert "$?" "1"
+
+	#TODO: Add more tests here to test the version regex before the script runs.
+
 	echo "Testing script output..."
 
 	output=$(./$0 1.2.3)
@@ -635,9 +649,14 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	exit
 fi
 
-#grab version from args
+#grab version from args and validate it against regex
 VERSION=$1
-#TODO: Validate VERSION matches regex
+regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)([-+0-9a-zA-Z\_\.]*)?$"
+if [[  $VERSION =~ $regex ]]; then
+	:
+else
+	exit 1
+fi
 
 #set default vars
 INC_MAJOR=false
