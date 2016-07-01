@@ -45,18 +45,64 @@
 ## update-version !1.2.3 --print-minor +minor #> 2
 ##
 
-getShebang() {
+output_help() {
+	##
+echo ""
+echo "#A generic script to modify a version number.
+update-version 1.2.3 #> 1.2.3
+update-version 1.2.3 +patch #> 1.2.4
+update-version 1.2.3 +major +minor +patch > 2.3.4
+
+# Modifiers can be in the version number to alter output.
+
+# Modifiers override +major, +minor and +patch
+
+# zero reset modifier (~) - reset a component to 0
+update-version 1.2.~ #> 1.2.0
+update-version ~.~.~ #> 0.0.0
+update-version 1.~.3 #> 1.0.3
+update-version 1.~.3 +patch #>1.0.3
+
+# force modifier (!) - don't update anything
+
+update-version !2.0.0 #> 2.0.0
+update-version !1.2.3 #> 1.2.3
+update-version !2.3.0 +patch #> 2.3.0
+
+# Version tags are allowed
+
+update-version 1.2.3-alpha1 +patch #> 1.2.4-alpha1
+update-version 1.~.3-alpha1 +patch #> 1.0.4-alpha1
+update-version !1.~.~ #> 1.0.0
+
+# Printing Version Info
+
+update-version 1.2.3 --print-minor #> 2
+update-version 1.2.3 --print-major #> 1
+update-version 1.2.3 --print-patch #> 3
+update-version 1.2.3-alpha1 --print-tag #> -alpha1
+
+# Printing with Modifiers
+
+# Modifiers are applied before printing a component.
+
+update-version 1.2.3 --print-minor +minor #> 3
+update-version 1.~.3 --print-minor +minor #> 0
+update-version !1.2.3 --print-minor +minor #> 2"
+}
+
+getForce() {
 	if [ -z "$1" ]; then
 		echo ''
 		return
 	fi
-	shebang=''
+	force=''
 	version=$1
 	regex="^(!)?"
 	if [[ $version =~ $regex ]]; then
-		shebang="${BASH_REMATCH[1]}"
+		force="${BASH_REMATCH[1]}"
 	fi
-	echo $shebang
+	echo $force
 }
 
 getMajor() {
@@ -123,6 +169,49 @@ assert() {
 	fi
 }
 
+#set default vars
+HELP=false
+INC_MAJOR=false
+INC_MINOR=false
+INC_PATCH=false
+PRINT_MAJOR=false
+PRINT_MINOR=false
+PRINT_PATCH=false
+PRINT_TAG=false
+
+#parse args
+for i in "$@"
+do
+	case "$i" in
+	+major|^major)
+		INC_MAJOR=true
+		;;
+	+minor|^minor)
+		INC_MINOR=true
+		;;
+	+patch|^patch)
+		INC_PATCH=true
+		;;
+	--print-major)
+		PRINT_MAJOR=true
+		;;
+	--print-minor)
+		PRINT_MINOR=true
+		;;
+	--print-patch)
+		PRINT_PATCH=true
+		;;
+	--print-tag)
+		PRINT_TAG=true
+		;;
+	-h|--help)
+		output_help
+		exit 0
+		;;
+	esac
+done
+
+#check for tests
 if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	echo "Testing patterns that should fail..."
 
@@ -145,360 +234,360 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	echo "Testing patterns that should pass..."
 
 	VERSION='1.2.3'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '3'
 	assert $TAG ''
 
 	VERSION='10.20.30'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '10'
 	assert $MINOR '20'
 	assert $PATCH '30'
 	assert $TAG ''
 
 	VERSION='100.200.300'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '100'
 	assert $MINOR '200'
 	assert $PATCH '300'
 	assert $TAG ''
 
 	VERSION='!1.2.3'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG '!'
+	assert $FORCE '!'
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '3'
 	assert $TAG ''
 	
 	VERSION='!1.2.3-alpha'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG '!'
+	assert $FORCE '!'
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
 	VERSION='!~.2.3'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG '!'
+	assert $FORCE '!'
 	assert $MAJOR '~'
 	assert $MINOR '2'
 	assert $PATCH '3'
 	assert $TAG ''
 
 	VERSION='!~.2.3-alpha'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG '!'
+	assert $FORCE '!'
 	assert $MAJOR '~'
 	assert $MINOR '2'
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
 	VERSION='!~.~.3'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG '!'
+	assert $FORCE '!'
 	assert $MAJOR '~'
 	assert $MINOR '~'
 	assert $PATCH '3'
 	assert $TAG ''
 
 	VERSION='!~.~.3-alpha'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG '!'
+	assert $FORCE '!'
 	assert $MAJOR '~'
 	assert $MINOR '~'
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
 	VERSION='!~.~.~'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG '!'
+	assert $FORCE '!'
 	assert $MAJOR '~'
 	assert $MINOR '~'
 	assert $PATCH '~'
 	assert $TAG ''
 
 	VERSION='!~.~.~-alpha'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG '!'
+	assert $FORCE '!'
 	assert $MAJOR '~'
 	assert $MINOR '~'
 	assert $PATCH '~'
 	assert $TAG '-alpha'
 
 	VERSION='~.2.3'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '~'
 	assert $MINOR '2'
 	assert $PATCH '3'
 	assert $TAG ''
 
 	VERSION='~.2.3-alpha'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '~'
 	assert $MINOR '2'
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
 	VERSION='~.~.3'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '~'
 	assert $MINOR '~'
 	assert $PATCH '3'
 	assert $TAG ''
 
 	VERSION='~.~.3-alpha'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '~'
 	assert $MINOR '~'
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
 	VERSION='~.~.~'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '~'
 	assert $MINOR '~'
 	assert $PATCH '~'
 	assert $TAG ''
 
 	VERSION='~.~.~-alpha'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '~'
 	assert $MINOR '~'
 	assert $PATCH '~'
 	assert $TAG '-alpha'
 
 	VERSION='1.2.~'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '~'
 	assert $TAG ''
 
 	VERSION='1.2.~-alpha'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '~'
 	assert $TAG '-alpha'
 
 	VERSION='1.~.~'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '1'
 	assert $MINOR '~'
 	assert $PATCH '~'
 	assert $TAG ''
 
 	VERSION='1.~.~-alpha'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '1'
 	assert $MINOR '~'
 	assert $PATCH '~'
 	assert $TAG '-alpha'
 
 	VERSION='!1.2.~+alpha'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG '!'
+	assert $FORCE '!'
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '~'
 	assert $TAG '+alpha'
 
 	VERSION='1.2.~+alpha'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '~'
 	assert $TAG '+alpha'
 
 	VERSION='1.2.~+-alpha.123'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '~'
 	assert $TAG '+-alpha.123'
 
 	VERSION='1.2.~-+alpha.123'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '~'
 	assert $TAG '-+alpha.123'
 
 	VERSION='1.2.~-+alpha.123-beta.94AF'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '~'
 	assert $TAG '-+alpha.123-beta.94AF'
 
 	VERSION='1.2.~-+alpha.123-beta.94AF_A4fF.098-5'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '~'
 	assert $TAG '-+alpha.123-beta.94AF_A4fF.098-5'
 
 	VERSION='1.2.~_-+alpha.123-beta.94AF_A4fF.098-5'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '~'
 	assert $TAG '_-+alpha.123-beta.94AF_A4fF.098-5'
 
 	VERSION='1.2.~A40-+alpha.123-beta.94AF_A4fF.098-5'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '~'
 	assert $TAG 'A40-+alpha.123-beta.94AF_A4fF.098-5'
 
 	VERSION='1.2.~.129FAD'
-	SHEBANG=$(getShebang $VERSION)
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
 	MINOR=$(getMinor $VERSION)
 	PATCH=$(getPatch $VERSION)
 	TAG=$(getTag $VERSION)
-	assert $SHEBANG ''
+	assert $FORCE ''
 	assert $MAJOR '1'
 	assert $MINOR '2'
 	assert $PATCH '~'
@@ -646,47 +735,8 @@ else
 	exit 1
 fi
 
-#set default vars
-INC_MAJOR=false
-INC_MINOR=false
-INC_PATCH=false
-
-#print vars
-PRINT_MAJOR=false
-PRINT_MINOR=false
-PRINT_PATCH=false
-PRINT_TAG=false
-
-#parse args
-for i in "$@"
-do
-	case "$i" in
-	+major|^major)
-		INC_MAJOR=true
-		;;
-	+minor|^minor)
-		INC_MINOR=true
-		;;
-	+patch|^patch)
-		INC_PATCH=true
-		;;
-	--print-major)
-		PRINT_MAJOR=true
-		;;
-	--print-minor)
-		PRINT_MINOR=true
-		;;
-	--print-patch)
-		PRINT_PATCH=true
-		;;
-	--print-tag)
-		PRINT_TAG=true
-		;;
-	esac
-done
-
 #grab components from version
-SHEBANG=$(getShebang $VERSION)
+FORCE=$(getForce $VERSION)
 MAJOR=$(getMajor $VERSION)
 MINOR=$(getMinor $VERSION)
 PATCH=$(getPatch $VERSION)
@@ -717,18 +767,18 @@ if [ "$NEW_PATCH" = "~" ]; then
 	PATCH_ZEROED='true'
 fi
 
-#increment major if shebang isn't present
-if [ "$INC_MAJOR" = 'true' ] && [ -z $SHEBANG ] && [ -z $MAJOR_ZEROED ]; then
+#increment major if force isn't present
+if [ "$INC_MAJOR" = 'true' ] && [ -z $FORCE ] && [ -z $MAJOR_ZEROED ]; then
 	NEW_MAJOR=$(($NEW_MAJOR + 1))
 fi
 
-#increment minor if shebang isn't present
-if [ "$INC_MINOR" = 'true' ] && [ -z $SHEBANG ] && [ -z $MINOR_ZEROED ]; then
+#increment minor if force isn't present
+if [ "$INC_MINOR" = 'true' ] && [ -z $FORCE ] && [ -z $MINOR_ZEROED ]; then
 	NEW_MINOR=$(($NEW_MINOR + 1))
 fi
 
-#increment patch if shebang isn't present
-if [ "$INC_PATCH" = "true" ] && [ -z $SHEBANG ] && [ -z $PATCH_ZEROED ]; then
+#increment patch if force isn't present
+if [ "$INC_PATCH" = "true" ] && [ -z $FORCE ] && [ -z $PATCH_ZEROED ]; then
 	NEW_PATCH=$(($NEW_PATCH + 1))
 fi
 
