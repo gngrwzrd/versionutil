@@ -1,0 +1,104 @@
+update-version(1) -- parse and update a version number.
+===
+
+## Synopsis
+
+`update-version` "(!)([~|0-9]*)\.([~|0-9]*)\.([~|0-9]*)([\+\-\_\.0-9]*)" +major +minor +patch --print-major --print-minor --print-patch
+
+## Description
+
+`update-version` parses a version. It performs updates to it or prints components.
+
+`+major`, `+minor`, `+patch` can be used to increment a component of the version.
+
+`--print-major`, `--print-minor`, `--print-patch`, `--print-tag` can be used to print components of the version.
+
+## Modifiers
+
+Modifiers can be used in the version number.
+
+Modifiers override +major, +minor, +patch.
+
+### Zero Reset Modifier
+
+Use ~ to tell the script you want to reset a component to zero.
+
+### Force Modifier
+
+Use ! to force set the entire version, and not update any components.
+
+## Examples    
+
+
+## Incrementing Components
+
+$update-version 1.2.3     
+1.2.3
+
+$update-version 1.2.3 +patch    
+1.2.4
+
+$update-version 1.2.3 +major +minor +patch    
+2.3.4
+
+## Modifiers
+
+## Zero Reset Modifier
+
+$update-version 1.2.~    
+1.2.0
+
+$update-version ~.~.~    
+0.0.0
+
+$update-version 1.~.3    
+1.0.3
+
+$update-version 1.~.3 +patch    
+1.0.3
+
+## Force Modifier
+
+$update-version !2.0.0    
+2.0.0
+
+$update-version !1.2.3    
+1.2.3
+
+$update-version !2.3.0 +patch    
+2.3.0
+
+## Printing Components
+
+$update-version 1.2.3 --print-major
+1
+
+$update-version 1.2.3 --print-minor
+2
+
+$update-version 1.2.3 --print-patch
+3
+
+$update-version 1.2.3-alpha-06 --print-tag
+-alpha-06
+
+$update-version 1.2.3+beta-rc1 --print-tag
++beta-rc1
+
+## Printing with Modifiers
+
+All modifiers are applied first.
+
+$update-version 1.2.~ --print-patch
+0
+
+$update-version !~.3.1 --print-major
+0
+
+## Tests
+
+You can run the internal unit tests:
+
+$update-version --test
+
+## Author

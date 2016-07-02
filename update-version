@@ -214,7 +214,7 @@ done
 #check for tests
 if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	echo "Testing patterns that should fail..."
-
+	
 	VERSION="1~.2.3"
 	MAJOR=$(getMajor $VERSION)
 	assert "$MAJOR" ''
@@ -595,131 +595,131 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 
 	echo "Testing script output fail..."
 
-	output=$(./$0 'test')
+	output=$($0 'test')
 	assert "$?" "1"
 
-	output=$(./$0 '!1.2 +patch')
+	output=$($0 '!1.2 +patch')
 	assert "$?" "1"
 
 	#TODO: Add more tests here to test the version regex before the script runs.
 
 	echo "Testing script output..."
 
-	output=$(./$0 1.2.3)
+	output=$($0 1.2.3)
 	assert $output "1.2.3"
 
-	output=$(./$0 1.2.3 +major)
+	output=$($0 1.2.3 +major)
 	assert $output "2.2.3"
 
-	output=$(./$0 1.2.3 +minor)
+	output=$($0 1.2.3 +minor)
 	assert $output "1.3.3"
 
-	output=$(./$0 1.2.3 +patch)
+	output=$($0 1.2.3 +patch)
 	assert $output "1.2.4"
 
-	output=$(./$0 1.2.3 +major +minor)
+	output=$($0 1.2.3 +major +minor)
 	assert $output "2.3.3"
 
-	output=$(./$0 1.2.3 +major +patch)
+	output=$($0 1.2.3 +major +patch)
 	assert $output "2.2.4"
 
-	output=$(./$0 1.2.3 +minor +patch)
+	output=$($0 1.2.3 +minor +patch)
 	assert $output "1.3.4"
 
-	output=$(./$0 1.2.3 +major +minor +patch)
+	output=$($0 1.2.3 +major +minor +patch)
 	assert $output "2.3.4"
 
-	output=$(./$0 "~.2.3")
+	output=$($0 "~.2.3")
 	assert $output "0.2.3"
 
-	output=$(./$0 "~.~.3")
+	output=$($0 "~.~.3")
 	assert $output "0.0.3"
 
-	output=$(./$0 "~.~.~")
+	output=$($0 "~.~.~")
 	assert $output "0.0.0"
 
-	output=$(./$0 "!1.2.3")
+	output=$($0 "!1.2.3")
 	assert $output "1.2.3"
 
-	output=$(./$0 "!1.2.3" +major)
+	output=$($0 "!1.2.3" +major)
 	assert $output "1.2.3"
 
-	output=$(./$0 "!1.2.3" +minor)
+	output=$($0 "!1.2.3" +minor)
 	assert $output "1.2.3"
 
-	output=$(./$0 "!1.2.3" +patch)
+	output=$($0 "!1.2.3" +patch)
 	assert $output "1.2.3"
 
-	output=$(./$0 "!1.2.3" +major +minor)
+	output=$($0 "!1.2.3" +major +minor)
 	assert $output "1.2.3"
 
-	output=$(./$0 "!1.2.3" +major +patch)
+	output=$($0 "!1.2.3" +major +patch)
 	assert $output "1.2.3"
 
-	output=$(./$0 "!1.2.3" +minor +patch)
+	output=$($0 "!1.2.3" +minor +patch)
 	assert $output "1.2.3"
 
-	output=$(./$0 "!1.2.3" +major +minor +patch)
+	output=$($0 "!1.2.3" +major +minor +patch)
 	assert $output "1.2.3"
 
-	output=$(./$0 "!~.2.3" +major)
+	output=$($0 "!~.2.3" +major)
 	assert $output "0.2.3"
 
-	output=$(./$0 "!1.~.3" +minor)
+	output=$($0 "!1.~.3" +minor)
 	assert $output "1.0.3"
 
-	output=$(./$0 "!1.2.~" +patch)
+	output=$($0 "!1.2.~" +patch)
 	assert $output "1.2.0"
 
-	output=$(./$0 "!~.~.~-alpha" +patch)
+	output=$($0 "!~.~.~-alpha" +patch)
 	assert $output "0.0.0-alpha"
 
-	output=$(./$0 "!~.~.~+alpha" +patch)
+	output=$($0 "!~.~.~+alpha" +patch)
 	assert $output "0.0.0+alpha"
 
-	output=$(./$0 "!~.~.~+-alpha" +patch)
+	output=$($0 "!~.~.~+-alpha" +patch)
 	assert $output "0.0.0+-alpha"
 
-	output=$(./$0 "!~.~.~_+-alpha" +patch)
+	output=$($0 "!~.~.~_+-alpha" +patch)
 	assert $output "0.0.0_+-alpha"
 
-	output=$(./$0 "!~.~.~._+-alpha" +patch)
+	output=$($0 "!~.~.~._+-alpha" +patch)
 	assert $output "0.0.0._+-alpha"
 
-	output=$(./$0 "!~.~.~.129AFD" +patch)
+	output=$($0 "!~.~.~.129AFD" +patch)
 	assert $output "0.0.0.129AFD"
 
-	output=$(./$0 "1.1.1.129AFD" +patch)
+	output=$($0 "1.1.1.129AFD" +patch)
 	assert $output "1.1.2.129AFD"
 
-	output=$(./$0  "1.2.3" --print-patch)
+	output=$($0  "1.2.3" --print-patch)
 	assert $output "3"
 
-	output=$(./$0  "1.2.3" --print-major)
+	output=$($0  "1.2.3" --print-major)
 	assert $output "1"
 
-	output=$(./$0  "1.2.3" --print-minor)
+	output=$($0  "1.2.3" --print-minor)
 	assert $output "2"
 
-	output=$(./$0  "1.2.3-alpha1.0934" --print-tag)
+	output=$($0  "1.2.3-alpha1.0934" --print-tag)
 	assert $output "-alpha1.0934"
 
-	output=$(./$0  "1.2.3.128AFD" --print-tag)
+	output=$($0  "1.2.3.128AFD" --print-tag)
 	assert $output ".128AFD"
 
-	output=$(./$0 "1.~.3" --print-minor)
+	output=$($0 "1.~.3" --print-minor)
 	assert $output "0"
 
-	output=$(./$0 "!1.~.2" --print-minor +minor)
+	output=$($0 "!1.~.2" --print-minor +minor)
 	assert $output "0"
 
-	output=$(./$0 "1.1.~" --print-patch +patch)
+	output=$($0 "1.1.~" --print-patch +patch)
 	assert $output "0"
 
-	output=$(./$0 "1.2.3" +patch --print-patch)
+	output=$($0 "1.2.3" +patch --print-patch)
 	assert $output "4"
 
-	output=$(./$0 "1.2.3" --print-patch +patch)
+	output=$($0 "1.2.3" --print-patch +patch)
 	assert $output "4"
 
 	echo "all tests passed"
