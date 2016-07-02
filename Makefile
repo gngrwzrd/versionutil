@@ -1,5 +1,5 @@
 test:
-	update-version --test
+	./update-version --test
 
 install:
 	ronn update-version.1.ronn
