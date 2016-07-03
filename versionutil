@@ -1,113 +1,73 @@
 #!/bin/bash
 
-#TODO: Add compare support
-#TODO: Add support for shorter versions like major.minor, major.minor-tag, if there is no patch +patch and --print-patch do nothing.
-
 ##
 ## A generic script to modify a version number.
 ##
 ## Examples:
-## update-version 1.2.3 #> 1.2.3
-## update-version 1.2.3 +patch #> 1.2.4
-## update-version 1.2.3 +major +minor +patch > 2.3.4
-## 
+## versionutil 1.2 +minor > 3
+## versionutil 1.2 +major +minor > 2.3
+## versionutil 1.2.3 #> 1.2.3
+## versionutil 1.2.3 +patch #> 1.2.4
+## versionutil 1.2.3 +major +minor +patch > 2.3.4
+##
+## == Modifiers
+##
 ## Modifiers can be in the version number to alter output.
 ##
 ## Modifiers override +major, +minor and +patch
 ##
-## # zero reset modifier (~) - reset a component to 0
-## update-version 1.2.~ #> 1.2.0
-## update-version ~.~.~ #> 0.0.0
-## update-version 1.~.3 #> 1.0.3
-## update-version 1.~.3 +patch #>1.0.3
+## Modifiers are always computed before comparing or printing.
+##
+## == Zero reset modifier (~) - reset a component to 0
+## versionutil 1.~ #> 1.0
+## versionutil ~.2 #> 0.2
+## versionutil 1.2.~ #> 1.2.0
+## versionutil ~.~.~ #> 0.0.0
+## versionutil 1.~.3 #> 1.0.3
+## versionutil 1.~.3 +patch #>1.0.3
 ## 
-## # force modifier (!) - don't update anything
-## update-version !2.0.0 #> 2.0.0
-## update-version !1.2.3 #> 1.2.3
-## update-version !2.3.0 +patch #> 2.3.0
+## == Force modifier (!) - don't update anything
+## versionutil '!0.2' > 0.2
+## versionutil '!0.2' +major > 0.2
+## versionutil '!0.2' +major +minor > 0.2
+## versionutil '!2.0.0' #> 2.0.0
+## versionutil '!1.2.3' #> 1.2.3
+## versionutil '!2.3.0' +patch #> 2.3.0
 ##
-## # Version tags are allowed
+## == Version tags are allowed
+## versionutil 1.2.3-alpha1 +patch #> 1.2.4-alpha1
+## versionutil 1.~.3-alpha1 +patch #> 1.0.4-alpha1
+## versionutil !1.~.~ #> 1.0.0
+##
+## == Printing Version Info
+## versionutil 1.2.3 --print-minor #> 2
+## versionutil 1.2.3 --print-major #> 1
+## versionutil 1.2.3 --print-patch #> 3
+## versionutil 1.2.3-alpha1 --print-tag #> -alpha1
 ## 
-## update-version 1.2.3-alpha1 +patch #> 1.2.4-alpha1
-## update-version 1.~.3-alpha1 +patch #> 1.0.4-alpha1
-## update-version !1.~.~ #> 1.0.0
-##
-## ## Printing Version Info
+## == Printing with Modifiers
 ## 
-## update-version 1.2.3 --print-minor #> 2
-## update-version 1.2.3 --print-major #> 1
-## update-version 1.2.3 --print-patch #> 3
-## update-version 1.2.3-alpha1 --print-tag #> -alpha1
-##
-## ## Printing with Modifiers
-##
-## Modifiers are applied before printing a component.
-##
-## update-version 1.2.3 --print-minor +minor #> 3
-## update-version 1.~.3 --print-minor +minor #> 0
-## update-version !1.2.3 --print-minor +minor #> 2
-##
+## Modifiers are always applied before printing a component.
+## 
+## versionutil 1.2.3 --print-minor +minor #> 3
+## versionutil 1.~.3 --print-minor +minor #> 0
+## versionutil !1.2.3 --print-minor +minor #> 2
+## 
 ## ## Comparing Versions
 ##
+## Modifiers are always applied before comparing versions.
+## 
 ## versionutil 1.2.3 --gt 1.2.4 #> false
-##
 ## versionutil 2.3.4 --lt 2.4.4 #> true
-##
 ## versionutil 2.3.4 --eq 2.3.4-alpha1 #> false
-##
 ## versionutil 2.3.4-alpha1 -eq 2.3.4-alpha1 #> true
-##
 ## versionutil 2.3.4 --compare 2.4.5 #> lt
-##
 ## versionutil 2.3.4 --compare 1.2.3 #> gt
-##
 ## versionutil 2.3.4 --compare 2.3.4 #> eq
 ##
 
 output_help() {
-	##
-echo ""
-echo "#A generic script to modify a version number.
-update-version 1.2.3 #> 1.2.3
-update-version 1.2.3 +patch #> 1.2.4
-update-version 1.2.3 +major +minor +patch > 2.3.4
-
-# Modifiers can be in the version number to alter output.
-
-# Modifiers override +major, +minor and +patch
-
-# zero reset modifier (~) - reset a component to 0
-update-version 1.2.~ #> 1.2.0
-update-version ~.~.~ #> 0.0.0
-update-version 1.~.3 #> 1.0.3
-update-version 1.~.3 +patch #>1.0.3
-
-# force modifier (!) - don't update anything
-
-update-version !2.0.0 #> 2.0.0
-update-version !1.2.3 #> 1.2.3
-update-version !2.3.0 +patch #> 2.3.0
-
-# Version tags are allowed
-
-update-version 1.2.3-alpha1 +patch #> 1.2.4-alpha1
-update-version 1.~.3-alpha1 +patch #> 1.0.4-alpha1
-update-version !1.~.~ #> 1.0.0
-
-# Printing Version Info
-
-update-version 1.2.3 --print-minor #> 2
-update-version 1.2.3 --print-major #> 1
-update-version 1.2.3 --print-patch #> 3
-update-version 1.2.3-alpha1 --print-tag #> -alpha1
-
-# Printing with Modifiers
-
-# Modifiers are applied before printing a component.
-
-update-version 1.2.3 --print-minor +minor #> 3
-update-version 1.~.3 --print-minor +minor #> 0
-update-version !1.2.3 --print-minor +minor #> 2"
+	echo "man versionutil"
 }
 
 getForce() {
@@ -193,58 +153,43 @@ getTag() {
 
 compare() {
 	compare=$1
-	left=$2
-	right=$3
-	
-	left_major=$(getMajor $2)
-	left_minor=$(getMinor $2)
-	left_patch=$(getPatch $2)
-	left_tag=$(getTag $2)
-	
-	right_major=$(getMajor $3)
-	right_minor=$(getMinor $3)
-	right_patch=$(getPatch $3)
-	right_tag=$(getTag $3)
-
-	#echo "left $left_major $left_minor $left_patch $left_tag, "
-	#echo "right $right_major $right_minor $right_patch $right_tag, "
-
+	left_major=$2
+	left_minor=$3
+	left_patch=$4
+	right_major=$5
+	right_minor=$6
+	right_patch=$7
 	if [ "$compare" = "compare" ]; then
-		
-		if [ "$left" = "$right" ]; then
-			echo "eq"
-			return
+		if [ $FORMAT = "long" ]; then
+			if [ "$left_major" = "$right_major" ] && [ "$left_minor" = "$right_minor" ] && [ "$left_patch" = "$right_patch" ]; then
+				echo "eq"
+				return
+			fi
+		elif [ "$FORMAT" = "short" ]; then
+			if [ "$left_major" = "$right_major" ] && [ "$left_minor" = "$right_minor" ]; then
+				echo "eq"
+				return
+			fi
 		fi
-
-		if [ "$left_major" = "$right_major" ] && [ "$left_minor" = "$right_minor" ] && [ "$left_patch" = "$right_patch" ]; then
-			echo "eq"
-			return
-		fi
-
 		if (( $left_major > $right_major )); then
 			echo "gt"
 			return
 		fi
-		
 		if (( $left_minor > $right_minor )); then
 			echo "gt"
 			return
 		fi
-		
-		if (( $left_patch > $right_patch )); then
-			echo "gt"
-			return
+		if [ "$FORMAT" = "long" ]; then
+			if (( $left_patch > $right_patch )); then
+				echo "gt"
+				return
+			fi
 		fi
-
 		echo "lt"
 		return
 	fi
 
 	if [ "$compare" = "lt" ]; then
-		if [ "$left" = "$right" ]; then
-			echo "false"
-			return
-		fi
 		if (( "$right_major" < "$left_major" )); then
 			echo "false"
 			return
@@ -253,19 +198,17 @@ compare() {
 			echo "false"
 			return
 		fi
-		if (( "$right_patch" < "$left_patch" )); then
-			echo "false"
-			return
+		if [ "$FORMAT" = "long" ]; then
+			if (( "$right_patch" < "$left_patch" )); then
+				echo "false"
+				return
+			fi
 		fi
 		echo "true"
 		return
 	fi
 
 	if [ "$compare" = "gt" ]; then
-		if [ "$left" = "$right" ]; then
-			echo "false"
-			return
-		fi
 		if (( "$right_major" > "$left_major" )); then
 			echo "false"
 			return
@@ -274,27 +217,29 @@ compare() {
 			echo "false"
 			return
 		fi
-		if (( "$right_patch" > "$left_patch" )); then
-			echo "false"
-			return
+		if [ "$FORMAT" = "long" ]; then
+			if (( "$right_patch" > "$left_patch" )); then
+				echo "false"
+				return
+			fi
 		fi
 		echo "true"
 		return
 	fi
 
 	if [ "$compare" = "eq" ]; then
-		if [ "$left" = "$right" ]; then
-			echo "true"
-			return
-		fi
-
-		if [ "$left_tag" ] || [ "$right_tag" ]; then
+		if [ "$FORMAT" = "long" ]; then
 			if [ "$left_major" = "$right_major" ] && [ "$left_minor" = "$right_minor" ] && [ "$left_patch" = "$right_patch" ]; then
 				echo "true"
 				return
 			fi
+		elif [ "$FORMAT" = "short" ]; then
+			if [ "$left_major" = "$right_major" ] && [ "$left_minor" = "$right_minor" ]; then
+				echo "true"
+				return
+			fi
 		fi
-
+		
 		echo "false"
 	fi
 }
@@ -304,6 +249,13 @@ assert() {
 	if [ "$1" != "$2" ]; then
 		echo "Assert fail $1 != $2"
 		exit 1
+	fi
+}
+
+export ENABLE_DEBUG_TEST=false
+echo_test() {
+	if [ "$ENABLE_DEBUG_TEST" = 'true' ]; then
+		echo "Test $1"
 	fi
 }
 
@@ -370,26 +322,111 @@ done
 
 #check for tests
 if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
-	echo "Testing patterns that should fail..."
+	
+	if [ "$2" = "--debug" ]; then
+		export ENABLE_DEBUG_TEST='true'
+	fi
 
-	VERSION="1~.2.3"
+	## Test Parser Functsions for Short Format
+
+	export FORMAT="short"
+
+	echo_test "TEST 1"
+	VERSION="1.2"
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
-	assert "$MAJOR" ''
-
-	VERSION="1.~2.3"
 	MINOR=$(getMinor $VERSION)
-	assert "$MINOR" ''
+	PATCH=$(getPatch $VERSION)
+	TAG=$(getTag $VERSION)
+	assert $FORCE ''
+	assert $MAJOR '1'
+	assert $MINOR '2'
+	assert $PATCH ''
+	assert $TAG ''
 
-	VERSION="1.2~.3"
-	MINOR=$(getMinor $VERSION)
-	assert "$MINOR" ''
-
-	VERSION="~1.2.3"
+	echo_test "TEST 2"
+	VERSION="1.~"
+	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
-	assert "$MAJOR" ''
+	MINOR=$(getMinor $VERSION)
+	PATCH=$(getPatch $VERSION)
+	TAG=$(getTag $VERSION)
+	assert $FORCE ''
+	assert $MAJOR '1'
+	assert $MINOR '~'
+	assert $PATCH ''
+	assert $TAG ''
 
-	echo "Testing patterns that should pass..."
+	echo_test "TEST 3"
+	VERSION="~.2"
+	FORCE=$(getForce $VERSION)
+	MAJOR=$(getMajor $VERSION)
+	MINOR=$(getMinor $VERSION)
+	PATCH=$(getPatch $VERSION)
+	TAG=$(getTag $VERSION)
+	assert $FORCE ''
+	assert $MAJOR '~'
+	assert $MINOR '2'
+	assert $PATCH ''
+	assert $TAG ''
 
+	echo_test "TEST 4"
+	VERSION="~.2"
+	FORCE=$(getForce $VERSION)
+	MAJOR=$(getMajor $VERSION)
+	MINOR=$(getMinor $VERSION)
+	PATCH=$(getPatch $VERSION)
+	TAG=$(getTag $VERSION)
+	assert $FORCE ''
+	assert $MAJOR '~'
+	assert $MINOR '2'
+	assert $PATCH ''
+	assert $TAG ''
+
+	echo_test "TEST 5"
+	VERSION="1.2-alpha"
+	FORCE=$(getForce $VERSION)
+	MAJOR=$(getMajor $VERSION)
+	MINOR=$(getMinor $VERSION)
+	PATCH=$(getPatch $VERSION)
+	TAG=$(getTag $VERSION)
+	assert $FORCE ''
+	assert $MAJOR '1'
+	assert $MINOR '2'
+	assert $PATCH ''
+	assert $TAG '-alpha'
+
+	echo_test "TEST 6"
+	VERSION="!~.2-alpha"
+	FORCE=$(getForce $VERSION)
+	MAJOR=$(getMajor $VERSION)
+	MINOR=$(getMinor $VERSION)
+	PATCH=$(getPatch $VERSION)
+	TAG=$(getTag $VERSION)
+	assert $FORCE '!'
+	assert $MAJOR '~'
+	assert $MINOR '2'
+	assert $PATCH ''
+	assert $TAG '-alpha'
+
+	echo_test "TEST 7"
+	VERSION="!~.~-beta01.06"
+	FORCE=$(getForce $VERSION)
+	MAJOR=$(getMajor $VERSION)
+	MINOR=$(getMinor $VERSION)
+	PATCH=$(getPatch $VERSION)
+	TAG=$(getTag $VERSION)
+	assert $FORCE '!'
+	assert $MAJOR '~'
+	assert $MINOR '~'
+	assert $PATCH ''
+	assert $TAG '-beta01.06'
+
+	## Test Parser Functions for Long Format
+
+	export FORMAT="long"
+
+	echo_test "TEST 8"
 	VERSION='1.2.3'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -402,6 +439,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG ''
 
+	echo_test "TEST 9"
 	VERSION='10.20.30'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -414,6 +452,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '30'
 	assert $TAG ''
 
+	echo_test "TEST 10"
 	VERSION='100.200.300'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -426,6 +465,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '300'
 	assert $TAG ''
 
+	echo_test "TEST 11"
 	VERSION='!1.2.3'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -438,6 +478,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG ''
 	
+	echo_test "TEST 12"
 	VERSION='!1.2.3-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -450,6 +491,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
+	echo_test "TEST 13"
 	VERSION='!~.2.3'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -462,6 +504,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG ''
 
+	echo_test "TEST 14"
 	VERSION='!~.2.3-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -474,6 +517,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
+	echo_test "TEST 15"
 	VERSION='!~.~.3'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -486,6 +530,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG ''
 
+	echo_test "TEST 16"
 	VERSION='!~.~.3-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -498,6 +543,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
+	echo_test "TEST 17"
 	VERSION='!~.~.~'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -510,6 +556,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG ''
 
+	echo_test "TEST 18"
 	VERSION='!~.~.~-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -522,6 +569,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '-alpha'
 
+	echo_test "TEST 19"
 	VERSION='~.2.3'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -534,6 +582,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG ''
 
+	echo_test "TEST 20"
 	VERSION='~.2.3-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -546,6 +595,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
+	echo_test "TEST 21"
 	VERSION='~.~.3'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -558,6 +608,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG ''
 
+	echo_test "TEST 22"
 	VERSION='~.~.3-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -570,6 +621,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
+	echo_test "TEST 23"
 	VERSION='~.~.~'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -582,6 +634,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG ''
 
+	echo_test "TEST 24"
 	VERSION='~.~.~-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -594,6 +647,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '-alpha'
 
+	echo_test "TEST 25"
 	VERSION='1.2.~'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -606,6 +660,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG ''
 
+	echo_test "TEST 26"
 	VERSION='1.2.~-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -618,6 +673,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '-alpha'
 
+	echo_test "TEST 27"
 	VERSION='1.~.~'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -630,6 +686,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG ''
 
+	echo_test "TEST 28"
 	VERSION='1.~.~-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -642,6 +699,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '-alpha'
 
+	echo_test "TEST 29"
 	VERSION='!1.2.~+alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -654,6 +712,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '+alpha'
 
+	echo_test "TEST 30"
 	VERSION='1.2.~+alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -666,6 +725,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '+alpha'
 
+	echo_test "TEST 31"
 	VERSION='1.2.~+-alpha.123'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -678,6 +738,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '+-alpha.123'
 
+	echo_test "TEST 32"
 	VERSION='1.2.~-+alpha.123'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -690,6 +751,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '-+alpha.123'
 
+	echo_test "TEST 33"
 	VERSION='1.2.~-+alpha.123-beta.94AF'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -702,6 +764,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '-+alpha.123-beta.94AF'
 
+	echo_test "TEST 34"
 	VERSION='1.2.~-+alpha.123-beta.94AF_A4fF.098-5'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -714,6 +777,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '-+alpha.123-beta.94AF_A4fF.098-5'
 
+	echo_test "TEST 35"
 	VERSION='1.2.~_-+alpha.123-beta.94AF_A4fF.098-5'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -726,6 +790,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '_-+alpha.123-beta.94AF_A4fF.098-5'
 
+	echo_test "TEST 36"
 	VERSION='1.2.~A40-+alpha.123-beta.94AF_A4fF.098-5'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -738,6 +803,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG 'A40-+alpha.123-beta.94AF_A4fF.098-5'
 
+	echo_test "TEST 37"
 	VERSION='1.2.~.129FAD'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -750,159 +816,296 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '.129FAD'
 
-	#echo "Testing script output fail..."
+	## TODO: test for expected failures from script output
 
-	#output=$($0 'test')
-	#assert "$?" "1"
+	## Test Short Format Script output
 
-	#output=$($0 '!1.2 +patch')
-	#assert "$?" "1"
+	echo_test "F34"
+	output=$($0 "1.2")
+	assert $output "1.2"
 
-	#TODO: Add more tests here to test the version regex before the script runs.
+	echo_test "40P"
+	output=$($0 "~.1")
+	assert $output "0.1"
 
-	echo "Testing script output..."
+	echo_test "43F"
+	output=$($0 "1.~")
+	assert $output "1.0"
 
+	echo_test "4RG"
+	output=$($0 "~.~")
+	assert $output "0.0"
+
+	echo_test "59F"
+	output=$($0 "!~.2" +major)
+	assert $output "0.2"
+
+	echo_test "9FT"
+	output=$($0 "~.2" +major)
+	assert $output "0.2"
+
+	echo_test "0RF"
+	output=$($0 "2.3" +major)
+	assert $output "3.3"
+
+	echo_test "4FD"
+	output=$($0 "2.~" +minor)
+	assert $output "2.0"
+
+	echo_test "ULR"
+	output=$($0 "2.2" +minor)
+	assert $output "2.3"
+
+	echo_test "EPL"
+	output=$($0 "1.1" +minor +major)
+	assert $output "2.2"
+
+	echo_test "FLK"
+	output=$($0 "1.1" +patch)
+	assert $output "1.1"
+
+	echo_test "LKI"
+	output=$($0 "1.1-alpha")
+	assert $output "1.1-alpha"
+
+	echo_test "D9I"
+	output=$($0 "1.1-alpha" +minor)
+	assert $output "1.2-alpha"
+
+	echo_test "0P3"
+	output=$($0 "1.1-alpha" +minor +major)
+	assert $output "2.2-alpha"
+
+	echo_test "13R"
+	output=$($0 "1.~-alpha" +minor +major)
+	assert $output "2.0-alpha"
+
+	echo_test "4NK"
+	output=$($0 "1.~+-alpha.beta06_45.4" +minor +major)
+	assert $output "2.0+-alpha.beta06_45.4"
+
+	## Test Long Format Script Output
+
+	echo_test "TEST 38"
 	output=$($0 1.2.3)
 	assert $output "1.2.3"
 
+	echo_test "TEST 39"
 	output=$($0 1.2.3 +major)
 	assert $output "2.2.3"
 
+	echo_test "TEST 40"
 	output=$($0 1.2.3 +minor)
 	assert $output "1.3.3"
 
+	echo_test "TEST 41"
 	output=$($0 1.2.3 +patch)
 	assert $output "1.2.4"
 
+	echo_test "TEST 42"
 	output=$($0 1.2.3 +major +minor)
 	assert $output "2.3.3"
 
+	echo_test "TEST 43"
 	output=$($0 1.2.3 +major +patch)
 	assert $output "2.2.4"
 
+	echo_test "TEST 44"
 	output=$($0 1.2.3 +minor +patch)
 	assert $output "1.3.4"
 
+	echo_test "TEST 45"
 	output=$($0 1.2.3 +major +minor +patch)
 	assert $output "2.3.4"
 
+	echo_test "TEST 46"
 	output=$($0 "~.2.3")
 	assert $output "0.2.3"
 
+	echo_test "TEST 47"
 	output=$($0 "~.~.3")
 	assert $output "0.0.3"
 
+	echo_test "TEST 48"
 	output=$($0 "~.~.~")
 	assert $output "0.0.0"
 
+	echo_test "TEST 49"
 	output=$($0 "!1.2.3")
 	assert $output "1.2.3"
 
+	echo_test "TEST 50"
 	output=$($0 "!1.2.3" +major)
 	assert $output "1.2.3"
 
+	echo_test "TEST 51"
 	output=$($0 "!1.2.3" +minor)
 	assert $output "1.2.3"
 
+	echo_test "TEST 52"
 	output=$($0 "!1.2.3" +patch)
 	assert $output "1.2.3"
 
+	echo_test "TEST 53"
 	output=$($0 "!1.2.3" +major +minor)
 	assert $output "1.2.3"
 
+	echo_test "TEST 54"
 	output=$($0 "!1.2.3" +major +patch)
 	assert $output "1.2.3"
 
+	echo_test "TEST 55"
 	output=$($0 "!1.2.3" +minor +patch)
 	assert $output "1.2.3"
 
+	echo_test "TEST 56"
 	output=$($0 "!1.2.3" +major +minor +patch)
 	assert $output "1.2.3"
 
+	echo_test "TEST 57"
 	output=$($0 "!~.2.3" +major)
 	assert $output "0.2.3"
 
+	echo_test "TEST 58"
 	output=$($0 "!1.~.3" +minor)
 	assert $output "1.0.3"
 
+	echo_test "TEST 59"
 	output=$($0 "!1.2.~" +patch)
 	assert $output "1.2.0"
 
+	echo_test "TEST 60"
 	output=$($0 "!~.~.~-alpha" +patch)
 	assert $output "0.0.0-alpha"
 
+	echo_test "TEST 61"
 	output=$($0 "!~.~.~+alpha" +patch)
 	assert $output "0.0.0+alpha"
 
+	echo_test "TEST 62"
 	output=$($0 "!~.~.~+-alpha" +patch)
 	assert $output "0.0.0+-alpha"
 
+	echo_test "TEST 63"
 	output=$($0 "!~.~.~_+-alpha" +patch)
 	assert $output "0.0.0_+-alpha"
 
+	echo_test "TEST 64"
 	output=$($0 "!~.~.~._+-alpha" +patch)
 	assert $output "0.0.0._+-alpha"
 
+	echo_test "TEST 65"
 	output=$($0 "!~.~.~.129AFD" +patch)
 	assert $output "0.0.0.129AFD"
 
+	echo_test "TEST 66"
 	output=$($0 "1.1.1.129AFD" +patch)
 	assert $output "1.1.2.129AFD"
 
+	## Test Printing
+
+	echo_test "TEST 67"
 	output=$($0  "1.2.3" --print-patch)
 	assert $output "3"
 
+	echo_test "TEST 68"
 	output=$($0  "1.2.3" --print-major)
 	assert $output "1"
 
+	echo_test "TEST 69"
 	output=$($0  "1.2.3" --print-minor)
 	assert $output "2"
 
+	echo_test "TEST 70"
 	output=$($0  "1.2.3-alpha1.0934" --print-tag)
 	assert $output "-alpha1.0934"
 
+	echo_test "TEST 71"
 	output=$($0  "1.2.3.128AFD" --print-tag)
 	assert $output ".128AFD"
 
+	echo_test "TEST 72"
 	output=$($0 "1.~.3" --print-minor)
 	assert $output "0"
 
+	echo_test "TEST 73"
 	output=$($0 "!1.~.2" --print-minor +minor)
 	assert $output "0"
 
+	echo_test "TEST 74"
 	output=$($0 "1.1.~" --print-patch +patch)
 	assert $output "0"
 
+	echo_test "TEST 75"
 	output=$($0 "1.2.3" +patch --print-patch)
 	assert $output "4"
 
+	echo_test "TEST 76"
 	output=$($0 "1.2.3" --print-patch +patch)
 	assert $output "4"
+
+	## Test Comparison for Long Format
+
+	echo_test "4F8"
+	output=$($0 "1.2.3" --gt "1.3.4")
+	assert $output "false"
+
+	echo_test "4ZD"
+	output=$($0 "1.2.3-alpha" --gt "1.3.4-alpha")
+	assert $output "false"
+
+	echo_test "LD8"
+	output=$($0 "1.2.3" --lt "1.3.4")
+	assert $output "true"
+
+	echo_test "4FV"
+	output=$($0 "1.2.3" --eq "1.2.3")
+	assert $output "true"
+
+	echo_test "GJK"
+	output=$($0 "1.2.3" --compare "1.3.4")
+	assert $output "lt"
+
+	echo_test "KL3"
+	output=$($0 "1.4.3" --compare "1.3.4")
+	assert $output "gt"
+
+	echo_test "LO4"
+	output=$($0 "1.4.3" --compare "1.4.3")
+	assert $output "eq"
+
+	echo_test "D4F"
+	output=$($0 "1.4.~" --compare "1.4.0")
+	assert $output "eq"
+
+	echo_test "DX4"
+	output=$($0 "!1.4.~" --compare "1.4.0")
+	assert $output "eq"
+
+	## TODO test comparison of short format
 
 	echo "all tests passed"
 	exit
 fi
 
+#setup format regexes
+short_regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)([-+0-9a-zA-Z\_\.]*)?$"
+long_regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)([-+0-9a-zA-Z\_\.]*)?$"
+
 #grab version from args and validate it against regex
 VERSION=$1
 
-short_regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)([-+0-9a-zA-Z\_\.]*)?$"
+#validate args against short or long regex
 if [[ $VERSION =~ $short_regex ]]; then
 	export FORMAT='short'
 fi
-
-long_regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)([-+0-9a-zA-Z\_\.]*)?$"
 if [[  $VERSION =~ $long_regex ]]; then
 	export FORMAT='long'
 fi
-
 if [ -z "$FORMAT" ]; then
 	echo "Invalid version format"
 	exit 1
 fi
-
-#echo "FORMAT $FORMAT"
-#exit 0
 
 #grab components from version
 FORCE=$(getForce $VERSION)
@@ -910,7 +1113,6 @@ MAJOR=$(getMajor $VERSION)
 MINOR=$(getMinor $VERSION)
 PATCH=$(getPatch $VERSION)
 TAG=$(getTag $VERSION)
-
 NEW_MAJOR=$MAJOR
 NEW_MINOR=$MINOR
 NEW_PATCH=$PATCH
@@ -951,28 +1153,36 @@ if [ "$INC_PATCH" = "true" ] && [ -z $FORCE ] && [ -z $PATCH_ZEROED ] && [ "$FOR
 	NEW_PATCH=$(($NEW_PATCH + 1))
 fi
 
+#print major
 if [ "$PRINT_MAJOR" = true ]; then
 	echo $NEW_MAJOR
 	exit 0;
 fi
 
+#print minoe
 if [ "$PRINT_MINOR" = true ]; then
 	echo $NEW_MINOR
 	exit 0
 fi
 
+#print patch
 if [ "$PRINT_PATCH" = true ]; then
 	echo $NEW_PATCH
 	exit 0
 fi
 
+#print tag
 if [ "$PRINT_TAG" = true ]; then
 	echo $TAG
 	exit 0
 fi
 
+#compare
 if [ ! -z "$COMPARE" ]; then
-	result=$(compare $COMPARE $VERSION $COMPARE_WITH)
+	compare_major=$(getMajor $COMPARE_WITH)
+	compare_minor=$(getMinor $COMPARE_WITH)
+	compare_patch=$(getPatch $COMPARE_WITH)
+	result=$(compare "$COMPARE" "$NEW_MAJOR" "$NEW_MINOR" "$NEW_PATCH" "$compare_major" "$compare_minor" "$compare_patch")
 	echo $result
 	exit 0
 fi

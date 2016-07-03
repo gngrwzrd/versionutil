@@ -1,69 +1,61 @@
-# Version Updater
+# Version Util
 
-Increments or prints a version number for you.
+Increments, prints, and compares version numbers
 
-# Usage
+# Printing Components
 
-## Printing Components
-
-You can print individual components.
-
-You can't print more than one individual component.
-
-## Printing Major
+You can print components in a version. You can't print more than one component at a time.
 
 ````
-$update-version 1.2.3 --print-major
-#1
+$versionutil 1.2.3 --print-major
+1
+
+$versionutil 1.2.3 --print-minor
+2
+
+$versionutil 1.2.3 --print-patch
+3
+
+$versionutil 1.2.3-alpha-09 --print-tag
+-alpha-09
 ````
 
-## Printing Minor
+# Comparing Versions
 
 ````
-$update-version 1.2.3 --print-minor
-#2
+$versionutil 1.2.3 --lt 2.3.4
+true
+
+$versionutil 1.2.3 --gt 2.3.4
+false
+
+$versionutil 1.2.3 --eq 1.2.3
+true
+
+$versionutil 1.2.3 --compare 1.2.3
+eq
+
+$versionutil 1.2.3 --compare 1.2.4
+lt
+
+$versionutil 1.2.3 --compare 1.2.1
+gt
 ````
 
-## Printing Patch
+# Incrementing Components
 
 ````
-$update-version 1.2.3 --print-patch
-#3
-````
+$versionutil 1.2.3 +major
+2.2.3
 
-## Printing Tag
+$versionutil 1.2.3 +minor
+1.3.3
 
-````
-$update-version 1.2.3-alpha-09 --print-tag
-#-alpha-09
-````
+$versionutil 1.2.3 +patch
+1.2.4
 
-## Incrementing Major
-
-````
-$update-version 1.2.3 +major
-#2.2.3
-````
-
-## Incrementing Minor
-
-````
-$update-version 1.2.3 +minor
-#1.3.3
-````
-
-## Incrementing Patch
-
-````
-$update-version 1.2.3 +patch
-#1.2.4
-````
-
-## Incrementing Multiple
-
-````
-$update-version 1.2.3 +patch +major +minor
-#2.3.4
+$versionutil 1.2.3 +patch +major +minor
+2.3.4
 ````
 
 # Version Tags
@@ -71,13 +63,11 @@ $update-version 1.2.3 +patch +major +minor
 Versions can contain tags and the version updater will leave those intact.
 
 ````
-$update-version 1.2.3-alpha1 +patch
-#1.2.4-alpha1
-````
+$versionutil 1.2.3-alpha1 +patch
+1.2.4-alpha1
 
-````
-$update-version 1.2.3+alpha.04 +minor
-#1.3.3+alpha.04
+$versionutil 1.2.3+alpha.04 +minor
+1.3.3+alpha.04
 ````
 
 # Modifiers
@@ -89,33 +79,23 @@ Modifiers override +major +minor and +patch.
 Components of a version can be reset to zero with ~
 
 ````
-$update-version 1.2.~
-#1.2.0
-````
+$versionutil 1.2.~
+1.2.0
 
-````
-$update-version 1.~.2 +minor
-#1.0.2
-````
+$versionutil 1.~.2 +minor
+1.0.2
 
-````
-$update-version 1.~.~
-#1.0.0
-````
+$versionutil 1.~.~
+1.0.0
 
-````
-$update-version ~.~.~
-#0.0.0
-````
+$versionutil ~.~.~
+0.0.0
 
-````
-$update-version 1.~.3
-#1.0.3
-````
+$versionutil 1.~.3
+1.0.3
 
-````
-$update-version 1.4.~ +patch
-#1.4.0
+$versionutil 1.4.~ +patch
+1.4.0
 ````
 
 ## Force Version Modifier
@@ -125,18 +105,14 @@ The force modifer returns the version without incrementing anything.
 This is a way to force a version number to something you want.
 
 ````
-$update-version !1.0.0
-#1.0.0
-````
+$versionutil !1.0.0
+1.0.0
 
-````
-$update-version !1.2.3 +patch
-#1.2.3
-````
+$versionutil !1.2.3 +patch
+1.2.3
 
-````
-$update-version !1.~.~ +patch
-#1.0.0
+$versionutil !1.~.~ +patch
+1.0.0
 ````
 
 ## Printing With Modifiers
@@ -144,18 +120,14 @@ $update-version !1.~.~ +patch
 Component modifiers are applied first before printing them.
 
 ````
-$update-version 1.1.~ --print-patch
-#0
-````
+$versionutil 1.1.~ --print-patch
+0
 
-````
-$update-version !1.~.~ --print-major
-#1
-````
+$versionutil !1.~.~ --print-major
+1
 
-````
-$update-version 1.2.3 --print-patch +patch
-#4
+$versionutil 1.2.3 --print-patch +patch
+4
 ````
 
 # Use Case
@@ -208,6 +180,6 @@ Or setting the major and setting everything to 0:
 Run unit tests with:
 
 ````
-./update-version --test
+./versionutil --test
 ````
 

@@ -1,13 +1,13 @@
-update-version(1) -- parse and update a version number.
+versionutil(1) -- parse and update a version number.
 ===
 
 ## Synopsis
 
-`update-version` "(!)([~|0-9]*)\.([~|0-9]*)\.([~|0-9]*)([\+\-\_\.0-9]*)" +major +minor +patch --print-major --print-minor --print-patch
+`versionutil` "(!)([~|0-9]*)\.([~|0-9]*)\.([~|0-9]*)([\+\-\_\.0-9]*)" +major +minor +patch --print-major --print-minor --print-patch
 
 ## Description
 
-`update-version` parses a version. It performs updates to it or prints components.
+`versionutil` parses a version. It performs updates to it or prints components.
 
 `+major`, `+minor`, `+patch` can be used to increment a component of the version.
 
@@ -32,73 +32,73 @@ Use ! to force set the entire version, and not update any components.
 
 ## Incrementing Components
 
-$update-version 1.2.3     
+$versionutil 1.2.3     
 1.2.3
 
-$update-version 1.2.3 +patch    
+$versionutil 1.2.3 +patch    
 1.2.4
 
-$update-version 1.2.3 +major +minor +patch    
+$versionutil 1.2.3 +major +minor +patch    
 2.3.4
 
 ## Modifiers
 
 ## Zero Reset Modifier
 
-$update-version 1.2.~    
+$versionutil 1.2.~    
 1.2.0
 
-$update-version ~.~.~    
+$versionutil ~.~.~    
 0.0.0
 
-$update-version 1.~.3    
+$versionutil 1.~.3    
 1.0.3
 
-$update-version 1.~.3 +patch    
+$versionutil 1.~.3 +patch    
 1.0.3
 
 ## Force Modifier
 
-$update-version !2.0.0    
+$versionutil !2.0.0    
 2.0.0
 
-$update-version !1.2.3    
+$versionutil !1.2.3    
 1.2.3
 
-$update-version !2.3.0 +patch    
+$versionutil !2.3.0 +patch    
 2.3.0
 
 ## Printing Components
 
-$update-version 1.2.3 --print-major
+$versionutil 1.2.3 --print-major
 1
 
-$update-version 1.2.3 --print-minor
+$versionutil 1.2.3 --print-minor
 2
 
-$update-version 1.2.3 --print-patch
+$versionutil 1.2.3 --print-patch
 3
 
-$update-version 1.2.3-alpha-06 --print-tag
+$versionutil 1.2.3-alpha-06 --print-tag
 -alpha-06
 
-$update-version 1.2.3+beta-rc1 --print-tag
+$versionutil 1.2.3+beta-rc1 --print-tag
 +beta-rc1
 
 ## Printing with Modifiers
 
 All modifiers are applied first.
 
-$update-version 1.2.~ --print-patch
+$versionutil 1.2.~ --print-patch
 0
 
-$update-version !~.3.1 --print-major
+$versionutil !~.3.1 --print-major
 0
 
 ## Tests
 
 You can run the internal unit tests:
 
-$update-version --test
+$versionutil --test
 
 ## Author
