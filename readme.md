@@ -74,7 +74,7 @@ $versionutil 1.2.3+alpha.04 +minor
 
 Modifiers override +major +minor and +patch.
 
-## Zero Reset Modifier
+### Zero Reset Modifier
 
 Components of a version can be reset to zero with ~
 
@@ -98,7 +98,7 @@ $versionutil 1.4.~ +patch
 1.4.0
 ````
 
-## Force Version Modifier
+### Force Version Modifier
 
 The force modifer returns the version without incrementing anything.
 
@@ -115,7 +115,7 @@ $versionutil !1.~.~ +patch
 1.0.0
 ````
 
-## Printing With Modifiers
+### Printing With Modifiers
 
 Component modifiers are applied first before printing them.
 
