@@ -1,16 +1,16 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "UPDATE\-VERSION" "1" "July 2016" "" ""
+.TH "VERSIONUTIL" "1" "July 2016" "" ""
 .
 .SH "NAME"
-\fBupdate\-version\fR \- parse and update a version number\.
+\fBversionutil\fR \- parse and update a version number\.
 .
 .SH "Synopsis"
-\fBupdate\-version\fR "(!)([~|0\-9]\fI)\.([~|0\-9]\fR)\.([~|0\-9]\fI)([+\-_\.0\-9]\fR)" +major +minor +patch \-\-print\-major \-\-print\-minor \-\-print\-patch
+\fBversionutil\fR "(!)([~|0\-9]\fI)\.([~|0\-9]\fR)\.([~|0\-9]\fI)([+\-_\.0\-9]\fR)" +major +minor +patch \-\-print\-major \-\-print\-minor \-\-print\-patch
 .
 .SH "Description"
-\fBupdate\-version\fR parses a version\. It performs updates to it or prints components\.
+\fBversionutil\fR parses a version\. It performs updates to it or prints components\.
 .
 .P
 \fB+major\fR, \fB+minor\fR, \fB+patch\fR can be used to increment a component of the version\.
@@ -33,19 +33,19 @@ Use ! to force set the entire version, and not update any components\.
 .SH "Examples"
 .
 .SH "Incrementing Components"
-$update\-version 1\.2\.3
+$versionutil 1\.2\.3
 .
 .br
 1\.2\.3
 .
 .P
-$update\-version 1\.2\.3 +patch
+$versionutil 1\.2\.3 +patch
 .
 .br
 1\.2\.4
 .
 .P
-$update\-version 1\.2\.3 +major +minor +patch
+$versionutil 1\.2\.3 +major +minor +patch
 .
 .br
 2\.3\.4
@@ -53,76 +53,76 @@ $update\-version 1\.2\.3 +major +minor +patch
 .SH "Modifiers"
 .
 .SH "Zero Reset Modifier"
-$update\-version 1\.2\.~
+$versionutil 1\.2\.~
 .
 .br
 1\.2\.0
 .
 .P
-$update\-version ~\.~\.~
+$versionutil ~\.~\.~
 .
 .br
 0\.0\.0
 .
 .P
-$update\-version 1\.~\.3
+$versionutil 1\.~\.3
 .
 .br
 1\.0\.3
 .
 .P
-$update\-version 1\.~\.3 +patch
+$versionutil 1\.~\.3 +patch
 .
 .br
 1\.0\.3
 .
 .SH "Force Modifier"
-$update\-version !2\.0\.0
+$versionutil !2\.0\.0
 .
 .br
 2\.0\.0
 .
 .P
-$update\-version !1\.2\.3
+$versionutil !1\.2\.3
 .
 .br
 1\.2\.3
 .
 .P
-$update\-version !2\.3\.0 +patch
+$versionutil !2\.3\.0 +patch
 .
 .br
 2\.3\.0
 .
 .SH "Printing Components"
-$update\-version 1\.2\.3 \-\-print\-major 1
+$versionutil 1\.2\.3 \-\-print\-major 1
 .
 .P
-$update\-version 1\.2\.3 \-\-print\-minor 2
+$versionutil 1\.2\.3 \-\-print\-minor 2
 .
 .P
-$update\-version 1\.2\.3 \-\-print\-patch 3
+$versionutil 1\.2\.3 \-\-print\-patch 3
 .
 .P
-$update\-version 1\.2\.3\-alpha\-06 \-\-print\-tag \-alpha\-06
+$versionutil 1\.2\.3\-alpha\-06 \-\-print\-tag \-alpha\-06
 .
 .P
-$update\-version 1\.2\.3+beta\-rc1 \-\-print\-tag +beta\-rc1
+$versionutil 1\.2\.3+beta\-rc1 \-\-print\-tag +beta\-rc1
 .
 .SH "Printing with Modifiers"
 All modifiers are applied first\.
 .
 .P
-$update\-version 1\.2\.~ \-\-print\-patch 0
+$versionutil 1\.2\.~ \-\-print\-patch 0
 .
 .P
-$update\-version !~\.3\.1 \-\-print\-major 0
+$versionutil !~\.3\.1 \-\-print\-major 0
 .
 .SH "Tests"
 You can run the internal unit tests:
 .
 .P
-$update\-version \-\-test
+$versionutil \-\-test
 .
 .SH "Author"
 
