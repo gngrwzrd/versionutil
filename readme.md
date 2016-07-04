@@ -195,7 +195,7 @@ The build server steps are like this:
 
 git checkout -- Info.plist
 PLIST_VERSION=$(PlistBuddy -c "Print: CFBundleShortVersionString" Info.plist)
-NEW_VERSION=$(versionutil $PLIST_VERSION +patch)
+NEW_VERSION=$(versionutil "$PLIST_VERSION" +patch)
 PlistBuddy -c "Set: CFBundleShortVersionString ${NEW_VERSION}" Info.plist
 
 7. Complete Build
