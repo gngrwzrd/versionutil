@@ -1,73 +1,6 @@
 #!/bin/bash
 
 #TODO validate compare with version
-#
-
-##
-## A generic script to modify a version number.
-##
-## Examples:
-## versionutil 1.2 +minor > 3
-## versionutil 1.2 +major +minor > 2.3
-## versionutil 1.2.3 #> 1.2.3
-## versionutil 1.2.3 +patch #> 1.2.4
-## versionutil 1.2.3 +major +minor +patch > 2.3.4
-##
-## == Modifiers
-##
-## Modifiers can be in the version number to alter output.
-##
-## Modifiers override +major, +minor and +patch
-##
-## Modifiers are always computed before comparing or printing.
-##
-## == Zero reset modifier (~) - reset a component to 0
-## versionutil 1.~ #> 1.0
-## versionutil ~.2 #> 0.2
-## versionutil 1.2.~ #> 1.2.0
-## versionutil ~.~.~ #> 0.0.0
-## versionutil 1.~.3 #> 1.0.3
-## versionutil 1.~.3 +patch #>1.0.3
-## 
-## == Force modifier (!) - don't update anything
-## versionutil '!0.2' > 0.2
-## versionutil '!0.2' +major > 0.2
-## versionutil '!0.2' +major +minor > 0.2
-## versionutil '!2.0.0' #> 2.0.0
-## versionutil '!1.2.3' #> 1.2.3
-## versionutil '!2.3.0' +patch #> 2.3.0
-##
-## == Version tags are allowed
-## versionutil 1.2.3-alpha1 +patch #> 1.2.4-alpha1
-## versionutil 1.~.3-alpha1 +patch #> 1.0.4-alpha1
-## versionutil !1.~.~ #> 1.0.0
-##
-## == Printing Version Info
-## versionutil 1.2.3 --print-minor #> 2
-## versionutil 1.2.3 --print-major #> 1
-## versionutil 1.2.3 --print-patch #> 3
-## versionutil 1.2.3-alpha1 --print-tag #> -alpha1
-## 
-## == Printing with Modifiers
-## 
-## Modifiers are always applied before printing a component.
-## 
-## versionutil 1.2.3 --print-minor +minor #> 3
-## versionutil 1.~.3 --print-minor +minor #> 0
-## versionutil !1.2.3 --print-minor +minor #> 2
-## 
-## ## Comparing Versions
-##
-## Modifiers are always applied before comparing versions.
-## 
-## versionutil 1.2.3 --gt 1.2.4 #> false
-## versionutil 2.3.4 --lt 2.4.4 #> true
-## versionutil 2.3.4 --eq 2.3.4-alpha1 #> false
-## versionutil 2.3.4-alpha1 -eq 2.3.4-alpha1 #> true
-## versionutil 2.3.4 --compare 2.4.5 #> lt
-## versionutil 2.3.4 --compare 1.2.3 #> gt
-## versionutil 2.3.4 --compare 2.3.4 #> eq
-##
 
 output_help() {
 	echo "man versionutil"
@@ -276,7 +209,7 @@ compare() {
 		echo "true"
 		return
 	fi
-	
+
 	if [ "$compare" = "eq" ]; then
 		if [ "$FORMAT" = "long" ]; then
 			if [ "$left_major" = "$right_major" ] && [ "$left_minor" = "$right_minor" ] && [ "$left_patch" = "$right_patch" ]; then

@@ -2,6 +2,50 @@
 
 Increments, prints, and compares version numbers
 
+# Supported Version Formats
+
+versionutil supports short and long versions.
+
+Short versions contain at least major.minor, and an optional tag.
+
+````
+1.1
+1.1-alpha
+1.1+beta
+1.1+beta06
+2.0-rc1
+````
+
+Long versions contain at least major.minor.patch, and an optional tag.
+
+````
+2.1.1
+2.1.1-alpha
+2.1.1+beta
+2.1.1+beta06
+2.2.0-rc1
+````
+
+# Version Tags
+
+Versions support a tag - a suffix after the version that's appended.
+
+It supports this format only
+
+````
+^[-|+][a-zA-Z0-9]*$
+````
+
+That is, the version can be formatted like this:
+
+````
+short version:
+major.minor(^[-|+][a-zA-Z0-9]*$)
+
+long version:
+major.minor.patch(^[-|+][a-zA-Z0-9]*$)
+````
+
 # Printing Components
 
 You can print components in a version. You can't print more than one component at a time.
