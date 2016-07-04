@@ -1,15 +1,13 @@
 #!/bin/bash
 
-#TODO validate compare with version
-
 output_help() {
 	echo "man versionutil"
 }
 
 validate_minor() {
-	NEW_MINOR="$1"
-	regex="^([0-9]*)|~?$"
-	if [[ "$NEW_MINOR" =~ $regex ]]; then
+	VALIDATE_NEW_MINOR="$1"
+	validate_minor_regex="^([0-9]*)|~?$"
+	if [[ "$VALIDATE_NEW_MINOR" =~ $validate_minor_regex ]]; then
 		:
 	else
 		if [ "$DEBUG" ]; then
@@ -22,9 +20,9 @@ validate_minor() {
 }
 
 validate_patch() {
-	NEW_PATCH="$1"
-	regex="^([0-9]*)|~?$"
-	if [[ "$NEW_PATCH" =~ $regex ]]; then
+	VALIDATE_NEW_PATCH="$1"
+	validate_patch_regex="^([0-9]*)|~?$"
+	if [[ "$VALIDATE_NEW_PATCH" =~ $validate_patch_regex ]]; then
 		:
 	else
 		if [ "$DEBUG" ]; then
@@ -37,10 +35,10 @@ validate_patch() {
 }
 
 validate_tag() {
-	TAG="$1"
-	if [ "$TAG" ]; then
-		regex="^[-|+][a-zA-Z0-9]*$"
-		if [[ "$TAG" =~ $regex ]]; then
+	VALIDATE_TAG="$1"
+	if [ "$VALIDATE_TAG" ]; then
+		validate_tag_regex="^[-|+][a-zA-Z0-9]*$"
+		if [[ "$VALIDATE_TAG" =~ $validate_tag_regex ]]; then
 			:
 		else
 			if [ "$DEBUG" ]; then
@@ -59,12 +57,12 @@ getForce() {
 		return
 	fi
 	force=''
-	version=$1
-	regex="^(!)?"
-	if [[ $version =~ $regex ]]; then
-		force="${BASH_REMATCH[1]}"
+	force_version=$1
+	force_regex="^(!)?"
+	if [[ $force_version =~ $force_regex ]]; then
+		force_version="${BASH_REMATCH[1]}"
 	fi
-	echo $force
+	echo $force_version
 }
 
 getMajor() {
@@ -72,13 +70,13 @@ getMajor() {
 		echo ''
 		return
 	fi
-	major=''
-	version=$1
-	regex="^(!)?([0-9]*|~?)"
-	if [[ $version =~ $regex ]]; then
-		major="${BASH_REMATCH[2]}"
+	major_major=''
+	major_version=$1
+	major_regex="^(!)?([0-9]*|~?)"
+	if [[ $major_version =~ $major_regex ]]; then
+		major_major="${BASH_REMATCH[2]}"
 	fi
-	echo $major
+	echo $major_major
 }
 
 getMinor() {
@@ -86,13 +84,13 @@ getMinor() {
 		echo ''
 		return
 	fi
-	minor=''
-	version=$1
-	regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)"
-	if [[ $version =~ $regex ]]; then
-		minor="${BASH_REMATCH[3]}"
+	minor_minor=''
+	minor_version=$1
+	minor_regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)"
+	if [[ $minor_version =~ $minor_regex ]]; then
+		minor_minor="${BASH_REMATCH[3]}"
 	fi
-	echo $minor
+	echo $minor_minor
 }
 
 getPatch() {
@@ -100,13 +98,13 @@ getPatch() {
 		echo ''
 		return
 	fi
-	patch=''
-	version=$1
+	patch_patch=''
+	patch_version=$1
 	if [ "$FORMAT" = "long" ]; then
-		regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)"
-		if [[ $version =~ $regex ]]; then
-			patch="${BASH_REMATCH[4]}"
-			echo $patch
+		patch_regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)"
+		if [[ $patch_version =~ $patch_regex ]]; then
+			patch_patch="${BASH_REMATCH[4]}"
+			echo $patch_patch
 		fi
 	elif [ "$FORMAT" = "short" ]; then
 		echo ""
@@ -118,20 +116,20 @@ getTag() {
 		echo ''
 		return
 	fi
-	tag=''
-	version=$1
+	tag_tag=''
+	tag_version=$1
 	if [ "$FORMAT" = "long" ]; then
-		regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)([-+:0-9a-zA-Z]*)?"
-		if [[ $version =~ $regex ]]; then
-			tag="${BASH_REMATCH[5]}"
+		tag_regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)([-+:0-9a-zA-Z]*)?"
+		if [[ $tag_version =~ $tag_regex ]]; then
+			tag_tag="${BASH_REMATCH[5]}"
 		fi
 	elif [ "$FORMAT" = "short" ]; then
-		regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)([-+:0-9a-zA-Z]*)?"
-		if [[ $version =~ $regex ]]; then
-			tag="${BASH_REMATCH[4]}"
+		tag_regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)([-+:0-9a-zA-Z]*)?"
+		if [[ $tag_version =~ $tag_regex ]]; then
+			tag_tag="${BASH_REMATCH[4]}"
 		fi
 	fi
-	echo $tag
+	echo $tag_tag
 }
 
 compare() {
@@ -370,6 +368,22 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	echo_test "5LK3"
 	output=$($0 "1:1")
 	assert "$output" "Invalid version format"
+
+	echo_test "45TGH"
+	output=$($0 '1.2.3' --compare 1.2.)
+	assert "$output" "Invalid comparison version format"
+
+	echo_test "4X43X"
+	output=$($0 '1.2.3' --compare 1.)
+	assert "$output" "Versions can't be compared, format mismatch"
+
+	echo_test "90ORL"
+	output=$($0 '1.2.3' --compare 1.2)
+	assert "$output" "Versions can't be compared, format mismatch"
+
+	echo_test "DL43"
+	output=$($0 '1.2' --compare 1.2.4)
+	assert "$output" "Versions can't be compared, format mismatch"
 
 	## Test Parser Functions for Short Format
 
@@ -980,6 +994,46 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 
 	## TODO test comparison of short format
 
+	echo_test "4LK1"
+	output=$($0 "1.2" --compare "1.2")
+	assert $output "eq"
+
+	echo_test "LM4R"
+	output=$($0 "1.~" --compare "1.~")
+	assert $output "eq"
+
+	echo_test "19FD"
+	output=$($0 "~.1" --compare "~.1")
+	assert $output "eq"
+
+	echo_test "39FX"
+	output=$($0 "1.1-alpha04" --compare "1.1-alpha04")
+	assert $output "eq"
+
+	echo_test "93T5"
+	output=$($0 "1.1+04Alpha" --compare "1.2+Alpha")
+	assert $output "lt"
+
+	echo_test "45TG"
+	output=$($0 "1.2+04Alpha" --compare "1.1+Alpha")
+	assert $output "gt"
+
+	echo_test "67GJ"
+	output=$($0 "1.2+04Alpha" --gt "1.1+Alpha")
+	assert $output "true"
+
+	echo_test "XML4"
+	output=$($0 "1.2+04Alpha" --lt "1.1+Alpha")
+	assert $output "false"
+
+	echo_test "X04K"
+	output=$($0 "1.1+04Alpha" --gt "1.2+Alpha")
+	assert $output "false"
+
+	echo_test "0PL3"
+	output=$($0 "1.1+04Alpha" --lt "1.2+Alpha")
+	assert $output "true"
+
 	echo ""
 	echo "all tests passed"
 	exit
@@ -1057,41 +1111,7 @@ fi
 #the regexes to grab each component are a little loose (on purpose),
 #validate each component against a stricter regex to ensure proper formatting.
 
-#validate version for short format
-if [ "$FORMAT" = "short" ]; then
-	if [ ! "$NEW_MAJOR" ]; then
-		if [ "$DEBUG" ]; then
-			echo "AL3 Invalid version format"
-		else
-			echo "Invalid version format"
-		fi
-		exit 1
-	fi
-	
-	if [ ! "$NEW_MINOR" ]; then
-		if [ "$DEBUG" ]; then
-			echo "KL3 Invalid version format"
-		else
-			echo "Invalid version format"
-		fi
-		exit 1
-	fi
-	
-	if [ "$DEBUG" ]; then
-		echo "F0P validate_minor $NEW_MINOR"
-	fi
-	validate_minor $NEW_MINOR
-
-	if [ "$DEBUG" ]; then
-		echo "X90 validate_tag $TAG"
-	fi
-	validate_tag $TAG
-fi
-
-#validate version for long format
-if [ "$FORMAT" = "long" ]; then
-	
-	if [ ! "$NEW_MAJOR" ]; then
+if [ ! "$NEW_MAJOR" ]; then
 		if [ "$DEBUG" ]; then
 			echo "95T Invalid version format"
 		else
@@ -1109,6 +1129,22 @@ if [ "$FORMAT" = "long" ]; then
 		exit 1
 	fi
 
+#validate version for short format
+if [ "$FORMAT" = "short" ]; then
+	
+	if [ "$DEBUG" ]; then
+		echo "F0P validate_minor $NEW_MINOR"
+	fi
+	validate_minor $NEW_MINOR
+
+	if [ "$DEBUG" ]; then
+		echo "X90 validate_tag $TAG"
+	fi
+	validate_tag $TAG
+fi
+
+#validate version for long format
+if [ "$FORMAT" = "long" ]; then
 	if [ ! "$NEW_PATCH" ]; then
 		if [ "$DEBUG" ]; then
 			echo "K45 Invalid version format"
@@ -1140,7 +1176,7 @@ if [ "$PRINT_MAJOR" = true ]; then
 	exit 0;
 fi
 
-#print minoe
+#print minor
 if [ "$PRINT_MINOR" = true ]; then
 	echo $NEW_MINOR
 	exit 0
@@ -1160,9 +1196,59 @@ fi
 
 #compare
 if [ ! -z "$COMPARE" ]; then
+	
+	# #make sure comparison formats match
+	compare_format=""
+	
+	if [[ "$COMPARE_WITH" =~ $short_regex ]]; then
+		compare_format="short"
+	fi
+	
+	if [[ "$COMPARE_WITH" =~ $long_regex ]]; then
+		compare_format="long"
+	fi
+	
+	if [ "$FORMAT" != "$compare_format" ]; then
+		echo "Versions can't be compared, format mismatch"
+		exit 1
+	fi
+
+	#grab components
 	compare_major=$(getMajor $COMPARE_WITH)
 	compare_minor=$(getMinor $COMPARE_WITH)
 	compare_patch=$(getPatch $COMPARE_WITH)
+
+	if [ ! "$compare_major" ]; then
+		echo "Invalid comparison version format"
+		exit 1
+	fi
+
+	if [ ! "$compare_minor" ]; then
+		echo "Invalid comparison version format"
+		exit 1
+	fi
+
+	if [ "$compare_format" = "long" ] && [ -z $compare_patch ]; then
+		echo "Invalid comparison version format"
+		exit 1
+	fi
+
+	if [  "$compare_major" = "~" ]; then
+		compare_major="0"
+	fi
+	
+	if [ "$compare_minor" = "~" ]; then
+		compare_minor="0"
+	fi
+	
+	if [ "$compare_patch" = "~" ]; then
+		compare_patch="0"
+	fi
+
+	if [ "$compare_format" = "long" ]; then
+		validate_patch $compare_patch
+	fi
+
 	result=$(compare "$COMPARE" "$NEW_MAJOR" "$NEW_MINOR" "$NEW_PATCH" "$compare_major" "$compare_minor" "$compare_patch")
 	echo $result
 	exit 0
