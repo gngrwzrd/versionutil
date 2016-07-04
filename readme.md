@@ -179,12 +179,13 @@ $versionutil 1.2.3 --print-patch +patch
 My personal use case is Xcode Server and Continuous Integration.
 
 The build server increments the patch component every time a successful integration runs.
+But incrementing major or minor requires human intervention.
 
-Incrementing major or minor requires human intervention.
+Using a modifier to override what the server is doing allows me to control what happens
+when the version is incremented on the server, without a ton of work. 
 
-This script was created to allow customizing the Info.plist
-CFBundleShortVersionString and control what happens on the build server when
-it calculates the version number.
+I simply set and commit CFBundleShortVersionString in the plist, if it contains modifiers
+they will override what's happening on the server.
 
 The build server steps are like this:
 
@@ -194,16 +195,12 @@ The build server steps are like this:
 
 git checkout -- Info.plist
 PLIST_VERSION=$(PlistBuddy -c "Print: CFBundleShortVersionString" Info.plist)
-NEW_VERSION=$(version-update $PLIST_VERSION +patch)
+NEW_VERSION=$(versionutil $PLIST_VERSION +patch)
 PlistBuddy -c "Set: CFBundleShortVersionString ${NEW_VERSION}" Info.plist
 
 7. Complete Build
 8. Release App
 ````
-
-By using the CFBundleShortVersionString and passing it to version-update,
-it allows for the Info.plist to override the version update if it needs to be
-set manually.
 
 For example, setting minor version and resetting the patch to 0 in the Plist would
 simply require this:
