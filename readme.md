@@ -2,6 +2,10 @@
 
 Increments, prints, and compares version numbers
 
+# Installation
+
+sudo make install
+
 # Supported Version Formats
 
 versionutil supports short and long versions.
@@ -222,5 +226,11 @@ Or setting the major and setting everything to 0:
 Run unit tests with:
 
 ````
-./versionutil --test
+make test
+````
+
+For development, unit tests have labels so it's easier to figure out which unit test failed:
+
+````
+make test-debug
 ````
