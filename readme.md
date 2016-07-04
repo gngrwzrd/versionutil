@@ -191,7 +191,7 @@ The build server steps are like this:
 
 ````
 1. Start Integration
-2. Xcode Builds, runs a run script phase as part of build process:
+2. Xcode Builds, runs a run script phase as part of build process (before the copy resources phase):
 
 git checkout -- Info.plist
 PLIST_VERSION=$(PlistBuddy -c "Print: CFBundleShortVersionString" Info.plist)
