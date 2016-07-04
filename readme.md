@@ -64,8 +64,8 @@ $versionutil 1.2.3 --print-minor
 $versionutil 1.2.3 --print-patch
 3
 
-$versionutil 1.2.3-alpha-09 --print-tag
--alpha-09
+$versionutil 1.2.3-alpha09 --print-tag
+-alpha09
 ````
 
 # Comparing Versions
