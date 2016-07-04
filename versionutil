@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#TODO validate compare with version
+#
+
 ##
 ## A generic script to modify a version number.
 ##
@@ -70,6 +73,53 @@ output_help() {
 	echo "man versionutil"
 }
 
+validate_minor() {
+	NEW_MINOR="$1"
+	regex="^([0-9]*)|~?$"
+	if [[ "$NEW_MINOR" =~ $regex ]]; then
+		:
+	else
+		if [ "$DEBUG" ]; then
+			echo "XL2 Invalid version format"
+		else
+			echo "Invalid version format"
+		fi
+		exit 1
+	fi
+}
+
+validate_patch() {
+	NEW_PATCH="$1"
+	regex="^([0-9]*)|~?$"
+	if [[ "$NEW_PATCH" =~ $regex ]]; then
+		:
+	else
+		if [ "$DEBUG" ]; then
+			echo "F9I Invalid version format"
+		else
+			echo "Invalid version format"
+		fi
+		exit 1
+	fi
+}
+
+validate_tag() {
+	TAG="$1"
+	if [ "$TAG" ]; then
+		regex="^[-|+][a-zA-Z0-9]*$"
+		if [[ "$TAG" =~ $regex ]]; then
+			:
+		else
+			if [ "$DEBUG" ]; then
+				echo "H58 Invalid version format"
+			else
+				echo "Invalid version format"
+			fi
+			exit 1	
+		fi
+	fi
+}
+
 getForce() {
 	if [ -z "$1" ]; then
 		echo ''
@@ -138,12 +188,12 @@ getTag() {
 	tag=''
 	version=$1
 	if [ "$FORMAT" = "long" ]; then
-		regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)([-+0-9a-zA-Z\_\.]*)?"
+		regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)([-+:0-9a-zA-Z]*)?"
 		if [[ $version =~ $regex ]]; then
 			tag="${BASH_REMATCH[5]}"
 		fi
 	elif [ "$FORMAT" = "short" ]; then
-		regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)([-+0-9a-zA-Z\_\.]*)?"
+		regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)([-+:0-9a-zA-Z]*)?"
 		if [[ $version =~ $regex ]]; then
 			tag="${BASH_REMATCH[4]}"
 		fi
@@ -226,7 +276,7 @@ compare() {
 		echo "true"
 		return
 	fi
-
+	
 	if [ "$compare" = "eq" ]; then
 		if [ "$FORMAT" = "long" ]; then
 			if [ "$left_major" = "$right_major" ] && [ "$left_minor" = "$right_minor" ] && [ "$left_patch" = "$right_patch" ]; then
@@ -252,10 +302,9 @@ assert() {
 	fi
 }
 
-export ENABLE_DEBUG_TEST=false
 echo_test() {
-	if [ "$ENABLE_DEBUG_TEST" = 'true' ]; then
-		echo "Test $1"
+	if [ "$TEST_DEBUG" = 'true' ]; then
+		echo "$1"
 	fi
 }
 
@@ -271,6 +320,8 @@ PRINT_TAG=false
 COMPARE=''
 COMPARE_WITH=''
 export FORMAT=''
+export DEBUG=''
+export TEST_DEBUG=''
 
 #parse args
 for i in "$@"
@@ -313,6 +364,12 @@ do
 		COMPARE='compare'
 		COMPARE_WITH=$3
 		;;
+	--debug)
+		export DEBUG=true
+		;;
+	--test-debug)
+		export TEST_DEBUG=true
+		;;
 	-h|--help)
 		output_help
 		exit 0
@@ -323,15 +380,69 @@ done
 #check for tests
 if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	
-	if [ "$2" = "--debug" ]; then
-		export ENABLE_DEBUG_TEST='true'
-	fi
+	## Test output that is expected to fail
 
-	## Test Parser Functsions for Short Format
+	echo_test "FXO"
+	output=$($0 "1")
+	assert "$output" "Invalid version format"
+
+	echo_test "FXN"
+	output=$($0 "1.")
+	assert "$output" "Invalid version format"
+
+	echo_test "09FG"
+	output=$($0 "1.2.")
+	assert "$output" "Invalid version format"
+
+	echo_test "D0L"
+	output=$($0 "!~.~.~.129AFD" +patch)
+	assert "$output" "Invalid version format"
+
+	echo_test "F45"
+	output=$($0 "1.1.1.129AFD" +patch)
+	assert "$output" "Invalid version format"
+
+	echo_test "4NK"
+	output=$($0 "1.~+-alpha" +minor +major)
+	assert "$output" "Invalid version format"
+
+	echo_test "4LK3"
+	output=$($0 "1.~+-alpha.1" +minor +major)
+	assert "$output" "Invalid version format"
+
+	echo_test "0P3"
+	output=$($0  "1.2.3-alpha1.0" --print-tag)
+	assert "$output" "Invalid version format"
+
+	echo_test "3FG"
+	output=$($0 "!~.~.~+-alpha" +patch)
+	assert "$output" "Invalid version format"
+
+	echo_test "21D"
+	output=$($0 "!~.~.~_+-alpha" +patch)
+	assert "$output" "Invalid version format"
+
+	echo_test "X87F"
+	output=$($0 "!~.~.~x+-alpha" +patch)
+	assert "$output" "Invalid version format"
+
+	echo_test "FK3"
+	output=$($0 "1.1.1F")
+	assert "$output" "Invalid version format"
+
+	echo_test "FKD"
+	output=$($0 "1.x")
+	assert "$output" "Invalid version format"
+
+	echo_test "5LK3"
+	output=$($0 "1:1")
+	assert "$output" "Invalid version format"
+
+	## Test Parser Functions for Short Format
 
 	export FORMAT="short"
 
-	echo_test "TEST 1"
+	echo_test "X09L"
 	VERSION="1.2"
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -344,7 +455,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH ''
 	assert $TAG ''
 
-	echo_test "TEST 2"
+	echo_test "F90K"
 	VERSION="1.~"
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -357,7 +468,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH ''
 	assert $TAG ''
 
-	echo_test "TEST 3"
+	echo_test "D7L4"
 	VERSION="~.2"
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -370,7 +481,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH ''
 	assert $TAG ''
 
-	echo_test "TEST 4"
+	echo_test "F987"
 	VERSION="~.2"
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -383,7 +494,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH ''
 	assert $TAG ''
 
-	echo_test "TEST 5"
+	echo_test "F094"
 	VERSION="1.2-alpha"
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -396,7 +507,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH ''
 	assert $TAG '-alpha'
 
-	echo_test "TEST 6"
+	echo_test "F04K"
 	VERSION="!~.2-alpha"
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -409,24 +520,11 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH ''
 	assert $TAG '-alpha'
 
-	echo_test "TEST 7"
-	VERSION="!~.~-beta01.06"
-	FORCE=$(getForce $VERSION)
-	MAJOR=$(getMajor $VERSION)
-	MINOR=$(getMinor $VERSION)
-	PATCH=$(getPatch $VERSION)
-	TAG=$(getTag $VERSION)
-	assert $FORCE '!'
-	assert $MAJOR '~'
-	assert $MINOR '~'
-	assert $PATCH ''
-	assert $TAG '-beta01.06'
-
 	## Test Parser Functions for Long Format
 
 	export FORMAT="long"
 
-	echo_test "TEST 8"
+	echo_test "F4FG"
 	VERSION='1.2.3'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -439,7 +537,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG ''
 
-	echo_test "TEST 9"
+	echo_test "4FGH"
 	VERSION='10.20.30'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -452,7 +550,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '30'
 	assert $TAG ''
 
-	echo_test "TEST 10"
+	echo_test "F983"
 	VERSION='100.200.300'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -465,7 +563,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '300'
 	assert $TAG ''
 
-	echo_test "TEST 11"
+	echo_test "DX98"
 	VERSION='!1.2.3'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -478,7 +576,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG ''
 	
-	echo_test "TEST 12"
+	echo_test "X04R"
 	VERSION='!1.2.3-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -491,7 +589,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
-	echo_test "TEST 13"
+	echo_test "F8L4"
 	VERSION='!~.2.3'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -517,7 +615,20 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
-	echo_test "TEST 15"
+	echo_test "X9PO"
+	VERSION='!~.2.3012-alpha'
+	FORCE=$(getForce $VERSION)
+	MAJOR=$(getMajor $VERSION)
+	MINOR=$(getMinor $VERSION)
+	PATCH=$(getPatch $VERSION)
+	TAG=$(getTag $VERSION)
+	assert $FORCE '!'
+	assert $MAJOR '~'
+	assert $MINOR '2'
+	assert $PATCH '3012'
+	assert $TAG '-alpha'
+
+	echo_test "AS45"
 	VERSION='!~.~.3'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -530,7 +641,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG ''
 
-	echo_test "TEST 16"
+	echo_test "XSE4"
 	VERSION='!~.~.3-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -543,7 +654,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
-	echo_test "TEST 17"
+	echo_test "7XLI"
 	VERSION='!~.~.~'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -556,7 +667,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG ''
 
-	echo_test "TEST 18"
+	echo_test "FX49"
 	VERSION='!~.~.~-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -569,7 +680,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '-alpha'
 
-	echo_test "TEST 19"
+	echo_test "67FB"
 	VERSION='~.2.3'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -582,7 +693,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG ''
 
-	echo_test "TEST 20"
+	echo_test "X84F"
 	VERSION='~.2.3-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -595,7 +706,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
-	echo_test "TEST 21"
+	echo_test "X0TG"
 	VERSION='~.~.3'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -608,7 +719,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG ''
 
-	echo_test "TEST 22"
+	echo_test "T225"
 	VERSION='~.~.3-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -621,7 +732,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '3'
 	assert $TAG '-alpha'
 
-	echo_test "TEST 23"
+	echo_test "DF99"
 	VERSION='~.~.~'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -634,7 +745,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG ''
 
-	echo_test "TEST 24"
+	echo_test "D4FH"
 	VERSION='~.~.~-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -647,7 +758,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '-alpha'
 
-	echo_test "TEST 25"
+	echo_test "X84G"
 	VERSION='1.2.~'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -660,7 +771,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG ''
 
-	echo_test "TEST 26"
+	echo_test "T4FG"
 	VERSION='1.2.~-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -673,7 +784,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '-alpha'
 
-	echo_test "TEST 27"
+	echo_test "D9LF"
 	VERSION='1.~.~'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -686,7 +797,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG ''
 
-	echo_test "TEST 28"
+	echo_test "D94R"
 	VERSION='1.~.~-alpha'
 	FORCE=$(getForce $VERSION)
 	MAJOR=$(getMajor $VERSION)
@@ -699,123 +810,7 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	assert $PATCH '~'
 	assert $TAG '-alpha'
 
-	echo_test "TEST 29"
-	VERSION='!1.2.~+alpha'
-	FORCE=$(getForce $VERSION)
-	MAJOR=$(getMajor $VERSION)
-	MINOR=$(getMinor $VERSION)
-	PATCH=$(getPatch $VERSION)
-	TAG=$(getTag $VERSION)
-	assert $FORCE '!'
-	assert $MAJOR '1'
-	assert $MINOR '2'
-	assert $PATCH '~'
-	assert $TAG '+alpha'
-
-	echo_test "TEST 30"
-	VERSION='1.2.~+alpha'
-	FORCE=$(getForce $VERSION)
-	MAJOR=$(getMajor $VERSION)
-	MINOR=$(getMinor $VERSION)
-	PATCH=$(getPatch $VERSION)
-	TAG=$(getTag $VERSION)
-	assert $FORCE ''
-	assert $MAJOR '1'
-	assert $MINOR '2'
-	assert $PATCH '~'
-	assert $TAG '+alpha'
-
-	echo_test "TEST 31"
-	VERSION='1.2.~+-alpha.123'
-	FORCE=$(getForce $VERSION)
-	MAJOR=$(getMajor $VERSION)
-	MINOR=$(getMinor $VERSION)
-	PATCH=$(getPatch $VERSION)
-	TAG=$(getTag $VERSION)
-	assert $FORCE ''
-	assert $MAJOR '1'
-	assert $MINOR '2'
-	assert $PATCH '~'
-	assert $TAG '+-alpha.123'
-
-	echo_test "TEST 32"
-	VERSION='1.2.~-+alpha.123'
-	FORCE=$(getForce $VERSION)
-	MAJOR=$(getMajor $VERSION)
-	MINOR=$(getMinor $VERSION)
-	PATCH=$(getPatch $VERSION)
-	TAG=$(getTag $VERSION)
-	assert $FORCE ''
-	assert $MAJOR '1'
-	assert $MINOR '2'
-	assert $PATCH '~'
-	assert $TAG '-+alpha.123'
-
-	echo_test "TEST 33"
-	VERSION='1.2.~-+alpha.123-beta.94AF'
-	FORCE=$(getForce $VERSION)
-	MAJOR=$(getMajor $VERSION)
-	MINOR=$(getMinor $VERSION)
-	PATCH=$(getPatch $VERSION)
-	TAG=$(getTag $VERSION)
-	assert $FORCE ''
-	assert $MAJOR '1'
-	assert $MINOR '2'
-	assert $PATCH '~'
-	assert $TAG '-+alpha.123-beta.94AF'
-
-	echo_test "TEST 34"
-	VERSION='1.2.~-+alpha.123-beta.94AF_A4fF.098-5'
-	FORCE=$(getForce $VERSION)
-	MAJOR=$(getMajor $VERSION)
-	MINOR=$(getMinor $VERSION)
-	PATCH=$(getPatch $VERSION)
-	TAG=$(getTag $VERSION)
-	assert $FORCE ''
-	assert $MAJOR '1'
-	assert $MINOR '2'
-	assert $PATCH '~'
-	assert $TAG '-+alpha.123-beta.94AF_A4fF.098-5'
-
-	echo_test "TEST 35"
-	VERSION='1.2.~_-+alpha.123-beta.94AF_A4fF.098-5'
-	FORCE=$(getForce $VERSION)
-	MAJOR=$(getMajor $VERSION)
-	MINOR=$(getMinor $VERSION)
-	PATCH=$(getPatch $VERSION)
-	TAG=$(getTag $VERSION)
-	assert $FORCE ''
-	assert $MAJOR '1'
-	assert $MINOR '2'
-	assert $PATCH '~'
-	assert $TAG '_-+alpha.123-beta.94AF_A4fF.098-5'
-
-	echo_test "TEST 36"
-	VERSION='1.2.~A40-+alpha.123-beta.94AF_A4fF.098-5'
-	FORCE=$(getForce $VERSION)
-	MAJOR=$(getMajor $VERSION)
-	MINOR=$(getMinor $VERSION)
-	PATCH=$(getPatch $VERSION)
-	TAG=$(getTag $VERSION)
-	assert $FORCE ''
-	assert $MAJOR '1'
-	assert $MINOR '2'
-	assert $PATCH '~'
-	assert $TAG 'A40-+alpha.123-beta.94AF_A4fF.098-5'
-
-	echo_test "TEST 37"
-	VERSION='1.2.~.129FAD'
-	FORCE=$(getForce $VERSION)
-	MAJOR=$(getMajor $VERSION)
-	MINOR=$(getMinor $VERSION)
-	PATCH=$(getPatch $VERSION)
-	TAG=$(getTag $VERSION)
-	assert $FORCE ''
-	assert $MAJOR '1'
-	assert $MINOR '2'
-	assert $PATCH '~'
-	assert $TAG '.129FAD'
-
+	
 	## TODO: test for expected failures from script output
 
 	## Test Short Format Script output
@@ -880,167 +875,135 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 	output=$($0 "1.~-alpha" +minor +major)
 	assert $output "2.0-alpha"
 
-	echo_test "4NK"
-	output=$($0 "1.~+-alpha.beta06_45.4" +minor +major)
-	assert $output "2.0+-alpha.beta06_45.4"
-
 	## Test Long Format Script Output
 
-	echo_test "TEST 38"
+	echo_test "X9LI"
 	output=$($0 1.2.3)
 	assert $output "1.2.3"
 
-	echo_test "TEST 39"
+	echo_test "X8L4"
 	output=$($0 1.2.3 +major)
 	assert $output "2.2.3"
 
-	echo_test "TEST 40"
+	echo_test "4FGHD"
 	output=$($0 1.2.3 +minor)
 	assert $output "1.3.3"
 
-	echo_test "TEST 41"
+	echo_test "DP3F"
 	output=$($0 1.2.3 +patch)
 	assert $output "1.2.4"
 
-	echo_test "TEST 42"
+	echo_test "DF34"
 	output=$($0 1.2.3 +major +minor)
 	assert $output "2.3.3"
 
-	echo_test "TEST 43"
+	echo_test "4BN6"
 	output=$($0 1.2.3 +major +patch)
 	assert $output "2.2.4"
 
-	echo_test "TEST 44"
+	echo_test "X9GB"
 	output=$($0 1.2.3 +minor +patch)
 	assert $output "1.3.4"
 
-	echo_test "TEST 45"
+	echo_test "X84R"
 	output=$($0 1.2.3 +major +minor +patch)
 	assert $output "2.3.4"
 
-	echo_test "TEST 46"
+	echo_test "X09RF"
 	output=$($0 "~.2.3")
 	assert $output "0.2.3"
 
-	echo_test "TEST 47"
+	echo_test "F4GN"
 	output=$($0 "~.~.3")
 	assert $output "0.0.3"
 
-	echo_test "TEST 48"
+	echo_test "ZS3R"
 	output=$($0 "~.~.~")
 	assert $output "0.0.0"
 
-	echo_test "TEST 49"
+	echo_test "ZHJK"
 	output=$($0 "!1.2.3")
 	assert $output "1.2.3"
 
-	echo_test "TEST 50"
+	echo_test "X09D"
 	output=$($0 "!1.2.3" +major)
 	assert $output "1.2.3"
 
-	echo_test "TEST 51"
+	echo_test "AS3F"
 	output=$($0 "!1.2.3" +minor)
 	assert $output "1.2.3"
 
-	echo_test "TEST 52"
+	echo_test "04F3"
 	output=$($0 "!1.2.3" +patch)
 	assert $output "1.2.3"
 
-	echo_test "TEST 53"
+	echo_test "X2FH8"
 	output=$($0 "!1.2.3" +major +minor)
 	assert $output "1.2.3"
 
-	echo_test "TEST 54"
+	echo_test "X05G"
 	output=$($0 "!1.2.3" +major +patch)
 	assert $output "1.2.3"
 
-	echo_test "TEST 55"
+	echo_test "X04H"
 	output=$($0 "!1.2.3" +minor +patch)
 	assert $output "1.2.3"
 
-	echo_test "TEST 56"
+	echo_test "DJ4LK"
 	output=$($0 "!1.2.3" +major +minor +patch)
 	assert $output "1.2.3"
 
-	echo_test "TEST 57"
+	echo_test "X9L4R"
 	output=$($0 "!~.2.3" +major)
 	assert $output "0.2.3"
 
-	echo_test "TEST 58"
+	echo_test "DL4FH"
 	output=$($0 "!1.~.3" +minor)
 	assert $output "1.0.3"
 
-	echo_test "TEST 59"
+	echo_test "L3RB"
 	output=$($0 "!1.2.~" +patch)
 	assert $output "1.2.0"
 
-	echo_test "TEST 60"
+	echo_test "D09ER"
 	output=$($0 "!~.~.~-alpha" +patch)
 	assert $output "0.0.0-alpha"
 
-	echo_test "TEST 61"
+	echo_test "MHEF"
 	output=$($0 "!~.~.~+alpha" +patch)
 	assert $output "0.0.0+alpha"
 
-	echo_test "TEST 62"
-	output=$($0 "!~.~.~+-alpha" +patch)
-	assert $output "0.0.0+-alpha"
-
-	echo_test "TEST 63"
-	output=$($0 "!~.~.~_+-alpha" +patch)
-	assert $output "0.0.0_+-alpha"
-
-	echo_test "TEST 64"
-	output=$($0 "!~.~.~._+-alpha" +patch)
-	assert $output "0.0.0._+-alpha"
-
-	echo_test "TEST 65"
-	output=$($0 "!~.~.~.129AFD" +patch)
-	assert $output "0.0.0.129AFD"
-
-	echo_test "TEST 66"
-	output=$($0 "1.1.1.129AFD" +patch)
-	assert $output "1.1.2.129AFD"
-
 	## Test Printing
 
-	echo_test "TEST 67"
+	echo_test "M4RH"
 	output=$($0  "1.2.3" --print-patch)
 	assert $output "3"
 
-	echo_test "TEST 68"
+	echo_test "M8L4"
 	output=$($0  "1.2.3" --print-major)
 	assert $output "1"
 
-	echo_test "TEST 69"
+	echo_test "MTR8"
 	output=$($0  "1.2.3" --print-minor)
 	assert $output "2"
 
-	echo_test "TEST 70"
-	output=$($0  "1.2.3-alpha1.0934" --print-tag)
-	assert $output "-alpha1.0934"
-
-	echo_test "TEST 71"
-	output=$($0  "1.2.3.128AFD" --print-tag)
-	assert $output ".128AFD"
-
-	echo_test "TEST 72"
+	echo_test "M4FE"
 	output=$($0 "1.~.3" --print-minor)
 	assert $output "0"
 
-	echo_test "TEST 73"
+	echo_test "M3FL"
 	output=$($0 "!1.~.2" --print-minor +minor)
 	assert $output "0"
 
-	echo_test "TEST 74"
+	echo_test "3RFL"
 	output=$($0 "1.1.~" --print-patch +patch)
 	assert $output "0"
 
-	echo_test "TEST 75"
+	echo_test "19FM"
 	output=$($0 "1.2.3" +patch --print-patch)
 	assert $output "4"
 
-	echo_test "TEST 76"
+	echo_test "FLMD"
 	output=$($0 "1.2.3" --print-patch +patch)
 	assert $output "4"
 
@@ -1084,13 +1047,14 @@ if [ "$1" = '--tests' ] || [ "$1" = '--test' ]; then
 
 	## TODO test comparison of short format
 
+	echo ""
 	echo "all tests passed"
 	exit
 fi
 
 #setup format regexes
-short_regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)([-+0-9a-zA-Z\_\.]*)?$"
-long_regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)([-+0-9a-zA-Z\_\.]*)?$"
+short_regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)([-+:0-9a-zA-Z]*)?$"
+long_regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)([-+:0-9a-zA-Z]*)?$"
 
 #grab version from args and validate it against regex
 VERSION=$1
@@ -1099,11 +1063,15 @@ VERSION=$1
 if [[ $VERSION =~ $short_regex ]]; then
 	export FORMAT='short'
 fi
-if [[  $VERSION =~ $long_regex ]]; then
+if [[ $VERSION =~ $long_regex ]]; then
 	export FORMAT='long'
 fi
 if [ -z "$FORMAT" ]; then
-	echo "Invalid version format"
+	if [ "$DEBUG" ]; then
+		echo "4RT Invalid version format"
+	else
+		echo "Invalid version format"
+	fi
 	exit 1
 fi
 
@@ -1151,6 +1119,86 @@ fi
 #increment patch if force isn't present
 if [ "$INC_PATCH" = "true" ] && [ -z $FORCE ] && [ -z $PATCH_ZEROED ] && [ "$FORMAT" != "short" ]; then
 	NEW_PATCH=$(($NEW_PATCH + 1))
+fi
+
+#the regexes to grab each component are a little loose (on purpose),
+#validate each component against a stricter regex to ensure proper formatting.
+
+#validate version for short format
+if [ "$FORMAT" = "short" ]; then
+	if [ ! "$NEW_MAJOR" ]; then
+		if [ "$DEBUG" ]; then
+			echo "AL3 Invalid version format"
+		else
+			echo "Invalid version format"
+		fi
+		exit 1
+	fi
+	
+	if [ ! "$NEW_MINOR" ]; then
+		if [ "$DEBUG" ]; then
+			echo "KL3 Invalid version format"
+		else
+			echo "Invalid version format"
+		fi
+		exit 1
+	fi
+	
+	if [ "$DEBUG" ]; then
+		echo "F0P validate_minor $NEW_MINOR"
+	fi
+	validate_minor $NEW_MINOR
+
+	if [ "$DEBUG" ]; then
+		echo "X90 validate_tag $TAG"
+	fi
+	validate_tag $TAG
+fi
+
+#validate version for long format
+if [ "$FORMAT" = "long" ]; then
+	
+	if [ ! "$NEW_MAJOR" ]; then
+		if [ "$DEBUG" ]; then
+			echo "95T Invalid version format"
+		else
+			echo "Invalid version format"
+		fi
+		exit 1
+	fi
+	
+	if [ ! "$NEW_MINOR" ]; then
+		if [ "$DEBUG" ]; then
+			echo "PO1 Invalid version format"
+		else
+			echo "Invalid version format"
+		fi
+		exit 1
+	fi
+
+	if [ ! "$NEW_PATCH" ]; then
+		if [ "$DEBUG" ]; then
+			echo "K45 Invalid version format"
+		else
+			echo "Invalid version format"
+		fi
+		exit 1
+	fi
+
+	if [ "$DEBUG" ]; then
+		echo "4R6 validate_patch $NEW_PATCH"
+	fi
+	validate_patch $NEW_PATCH
+
+	if [ "$DEBUG" ]; then
+		echo "F0P validate_minor $NEW_MINOR"
+	fi
+	validate_minor $NEW_MINOR
+
+	if [ "$DEBUG" ]; then
+		echo "X91 validate_tag $TAG"
+	fi
+	validate_tag $TAG
 fi
 
 #print major
