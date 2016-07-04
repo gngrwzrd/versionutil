@@ -208,14 +208,18 @@ PlistBuddy -c "Set: CFBundleShortVersionString ${NEW_VERSION}" Info.plist
 ````
 
 For example, setting minor version and resetting the patch to 0 in the Plist would
-simply require this:
+require someone manually setting CFBundleShortVersionString. Then commit and push.
+Because the build server uses versionutil, the modifiers will override what it normally
+does and set the version to 1.2.0.
 
 ````
 <key>CFBundleShortVersionString</key>
 <string>1.2.~</string>
 ````
 
-Or setting the major and setting everything to 0:
+To force set all components, manually update CFBundleShortVersionString, commit and push.
+Because the build server uses versionutil, the modifiers will override what it normally
+does and set the version to 2.0.0.
 ````
 <key>CFBundleShortVersionString</key>
 <string>!2.0.0</string>
