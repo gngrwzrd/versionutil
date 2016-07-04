@@ -200,6 +200,7 @@ PlistBuddy -c "Set: CFBundleShortVersionString ${NEW_VERSION}" Info.plist
 
 7. Complete Build
 8. Release App
+9. Commit new Info.plist and push
 ````
 
 For example, setting minor version and resetting the patch to 0 in the Plist would
