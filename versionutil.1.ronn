@@ -3,15 +3,52 @@ versionutil(1) -- parse and update a version number.
 
 ## Synopsis
 
-`versionutil` "(!)([~|0-9]*)\.([~|0-9]*)\.([~|0-9]*)([\+\-\_\.0-9]*)" +major +minor +patch --print-major --print-minor --print-patch
+`versionutil` VERSION +major +minor +patch
+
+`versionutil` VERSION --compare --gt --lt --eq VERSION
+
+`versionutil` VERSION --print-major --print-minor --print-patch --print-tag
 
 ## Description
 
-`versionutil` parses a version. It performs updates to it or prints components.
+`versionutil` Increments, prints, and compares version numbers
 
 `+major`, `+minor`, `+patch` can be used to increment a component of the version.
 
 `--print-major`, `--print-minor`, `--print-patch`, `--print-tag` can be used to print components of the version.
+
+`--compare`, `--lt`, `--gt`, `--eq` compares two version numbers.
+
+## Supported Version Formats
+
+versionutil supports short and long versions.
+
+Short versions contain at least MAJOR.MINOR, and an optional tag.
+
+Long versions contain at least MAJOR.MINOR.PATCH, and an optional tag.
+
+## Supported Version Format Examples
+
+1.1    
+1.1-alpha    
+1.1+beta    
+1.1+beta06    
+2.0-rc1    
+
+2.1.1    
+2.1.1-alpha    
+2.1.1+beta    
+2.1.1+beta06    
+2.2.0-rc1    
+
+##Version Tags
+
+Versions support a tag - a suffix after the version numbers.
+
+It supports this format only:    
+
+^[-|+][a-zA-Z0-9]*$
+
 
 ## Modifiers
 
@@ -21,14 +58,13 @@ Modifiers override +major, +minor, +patch.
 
 ### Zero Reset Modifier
 
-Use ~ to tell the script you want to reset a component to zero.
+Use ~ to tell the script you want to reset a component to zero. See the examples below for modifiers.
 
 ### Force Modifier
 
-Use ! to force set the entire version, and not update any components.
+Use ! to force set the entire version, and not update any components. See the examples below for modifiers.
 
 ## Examples    
-
 
 ## Incrementing Components
 
@@ -70,13 +106,13 @@ $versionutil !2.3.0 +patch
 
 ## Printing Components
 
-$versionutil 1.2.3 --print-major
+$versionutil 1.2.3 --print-major    
 1
 
-$versionutil 1.2.3 --print-minor
+$versionutil 1.2.3 --print-minor    
 2
 
-$versionutil 1.2.3 --print-patch
+$versionutil 1.2.3 --print-patch    
 3
 
 $versionutil 1.2.3-alpha-06 --print-tag
@@ -95,6 +131,26 @@ $versionutil 1.2.~ --print-patch
 $versionutil !~.3.1 --print-major
 0
 
+## Comparing Versions Examples
+
+$versionutil 1.2.5 --compare 1.2.4    
+gt
+
+$versionutil 1.2.3 --compare 1.2.4    
+lt
+
+$versionutil 1.2.3 --compare 1.2.3    
+eq
+
+$versionutil 1.2.3 --lt 1.2.2    
+false
+
+$versionutil 1.2.4 --gt 1.2.2    
+true
+
+$versionutil 1.2.3 --eq 1.2.3    
+true
+
 ## Tests
 
 You can run the internal unit tests:
@@ -102,3 +158,5 @@ You can run the internal unit tests:
 $versionutil --test
 
 ## Author
+
+Aaron Smith

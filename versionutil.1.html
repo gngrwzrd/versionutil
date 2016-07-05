@@ -56,6 +56,9 @@
     <a href="#NAME">NAME</a>
     <a href="#Synopsis">Synopsis</a>
     <a href="#Description">Description</a>
+    <a href="#Supported-Version-Formats">Supported Version Formats</a>
+    <a href="#Supported-Version-Format-Examples">Supported Version Format Examples</a>
+    <a href="#Version-Tags">Version Tags</a>
     <a href="#Modifiers">Modifiers</a>
     <a href="#Examples">Examples</a>
     <a href="#Incrementing-Components">Incrementing Components</a>
@@ -64,6 +67,7 @@
     <a href="#Force-Modifier">Force Modifier</a>
     <a href="#Printing-Components">Printing Components</a>
     <a href="#Printing-with-Modifiers">Printing with Modifiers</a>
+    <a href="#Comparing-Versions-Examples">Comparing Versions Examples</a>
     <a href="#Tests">Tests</a>
     <a href="#Author">Author</a>
   </div>
@@ -81,15 +85,51 @@
 
 <h2 id="Synopsis">Synopsis</h2>
 
-<p><code>versionutil</code> "(!)([~|0-9]<em>).([~|0-9]</em>).([~|0-9]<em>)([+-_.0-9]</em>)" +major +minor +patch --print-major --print-minor --print-patch</p>
+<p><code>versionutil</code> VERSION +major +minor +patch</p>
+
+<p><code>versionutil</code> VERSION --compare --gt --lt --eq VERSION</p>
+
+<p><code>versionutil</code> VERSION --print-major --print-minor --print-patch --print-tag</p>
 
 <h2 id="Description">Description</h2>
 
-<p><code>versionutil</code> parses a version. It performs updates to it or prints components.</p>
+<p><code>versionutil</code> Increments, prints, and compares version numbers</p>
 
 <p><code>+major</code>, <code>+minor</code>, <code>+patch</code> can be used to increment a component of the version.</p>
 
 <p><code>--print-major</code>, <code>--print-minor</code>, <code>--print-patch</code>, <code>--print-tag</code> can be used to print components of the version.</p>
+
+<p><code>--compare</code>, <code>--lt</code>, <code>--gt</code>, <code>--eq</code> compares two version numbers.</p>
+
+<h2 id="Supported-Version-Formats">Supported Version Formats</h2>
+
+<p>versionutil supports short and long versions.</p>
+
+<p>Short versions contain at least MAJOR.MINOR, and an optional tag.</p>
+
+<p>Long versions contain at least MAJOR.MINOR.PATCH, and an optional tag.</p>
+
+<h2 id="Supported-Version-Format-Examples">Supported Version Format Examples</h2>
+
+<p>1.1  <br />
+1.1-alpha  <br />
+1.1+beta  <br />
+1.1+beta06  <br />
+2.0-rc1</p>
+
+<p>2.1.1  <br />
+2.1.1-alpha  <br />
+2.1.1+beta  <br />
+2.1.1+beta06  <br />
+2.2.0-rc1</p>
+
+<h2 id="Version-Tags">Version Tags</h2>
+
+<p>Versions support a tag - a suffix after the version numbers.</p>
+
+<p>It supports this format only:</p>
+
+<p>^[-|+][a-zA-Z0-9]*$</p>
 
 <h2 id="Modifiers">Modifiers</h2>
 
@@ -99,11 +139,11 @@
 
 <h3 id="Zero-Reset-Modifier">Zero Reset Modifier</h3>
 
-<p>Use ~ to tell the script you want to reset a component to zero.</p>
+<p>Use ~ to tell the script you want to reset a component to zero. See the examples below for modifiers.</p>
 
 <h3 id="Force-Modifier">Force Modifier</h3>
 
-<p>Use ! to force set the entire version, and not update any components.</p>
+<p>Use ! to force set the entire version, and not update any components. See the examples below for modifiers.</p>
 
 <h2 id="Examples">Examples</h2>
 
@@ -147,13 +187,13 @@
 
 <h2 id="Printing-Components">Printing Components</h2>
 
-<p>$versionutil 1.2.3 --print-major
+<p>$versionutil 1.2.3 --print-major  <br />
 1</p>
 
-<p>$versionutil 1.2.3 --print-minor
+<p>$versionutil 1.2.3 --print-minor  <br />
 2</p>
 
-<p>$versionutil 1.2.3 --print-patch
+<p>$versionutil 1.2.3 --print-patch  <br />
 3</p>
 
 <p>$versionutil 1.2.3-alpha-06 --print-tag
@@ -172,6 +212,26 @@
 <p>$versionutil !~.3.1 --print-major
 0</p>
 
+<h2 id="Comparing-Versions-Examples">Comparing Versions Examples</h2>
+
+<p>$versionutil 1.2.5 --compare 1.2.4  <br />
+gt</p>
+
+<p>$versionutil 1.2.3 --compare 1.2.4  <br />
+lt</p>
+
+<p>$versionutil 1.2.3 --compare 1.2.3  <br />
+eq</p>
+
+<p>$versionutil 1.2.3 --lt 1.2.2  <br />
+false</p>
+
+<p>$versionutil 1.2.4 --gt 1.2.2  <br />
+true</p>
+
+<p>$versionutil 1.2.3 --eq 1.2.3  <br />
+true</p>
+
 <h2 id="Tests">Tests</h2>
 
 <p>You can run the internal unit tests:</p>
@@ -179,6 +239,8 @@
 <p>$versionutil --test</p>
 
 <h2 id="Author">Author</h2>
+
+<p>Aaron Smith</p>
 
 
   <ol class='man-decor man-foot man foot'>

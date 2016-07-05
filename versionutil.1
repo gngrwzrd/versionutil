@@ -7,16 +7,73 @@
 \fBversionutil\fR \- parse and update a version number\.
 .
 .SH "Synopsis"
-\fBversionutil\fR "(!)([~|0\-9]\fI)\.([~|0\-9]\fR)\.([~|0\-9]\fI)([+\-_\.0\-9]\fR)" +major +minor +patch \-\-print\-major \-\-print\-minor \-\-print\-patch
+\fBversionutil\fR VERSION +major +minor +patch
+.
+.P
+\fBversionutil\fR VERSION \-\-compare \-\-gt \-\-lt \-\-eq VERSION
+.
+.P
+\fBversionutil\fR VERSION \-\-print\-major \-\-print\-minor \-\-print\-patch \-\-print\-tag
 .
 .SH "Description"
-\fBversionutil\fR parses a version\. It performs updates to it or prints components\.
+\fBversionutil\fR Increments, prints, and compares version numbers
 .
 .P
 \fB+major\fR, \fB+minor\fR, \fB+patch\fR can be used to increment a component of the version\.
 .
 .P
 \fB\-\-print\-major\fR, \fB\-\-print\-minor\fR, \fB\-\-print\-patch\fR, \fB\-\-print\-tag\fR can be used to print components of the version\.
+.
+.P
+\fB\-\-compare\fR, \fB\-\-lt\fR, \fB\-\-gt\fR, \fB\-\-eq\fR compares two version numbers\.
+.
+.SH "Supported Version Formats"
+versionutil supports short and long versions\.
+.
+.P
+Short versions contain at least MAJOR\.MINOR, and an optional tag\.
+.
+.P
+Long versions contain at least MAJOR\.MINOR\.PATCH, and an optional tag\.
+.
+.SH "Supported Version Format Examples"
+1\.1
+.
+.br
+1\.1\-alpha
+.
+.br
+1\.1+beta
+.
+.br
+1\.1+beta06
+.
+.br
+2\.0\-rc1
+.
+.P
+2\.1\.1
+.
+.br
+2\.1\.1\-alpha
+.
+.br
+2\.1\.1+beta
+.
+.br
+2\.1\.1+beta06
+.
+.br
+2\.2\.0\-rc1
+.
+.SH "Version Tags"
+Versions support a tag \- a suffix after the version numbers\.
+.
+.P
+It supports this format only:
+.
+.P
+^[\-|+][a\-zA\-Z0\-9]*$
 .
 .SH "Modifiers"
 Modifiers can be used in the version number\.
@@ -25,10 +82,10 @@ Modifiers can be used in the version number\.
 Modifiers override +major, +minor, +patch\.
 .
 .SS "Zero Reset Modifier"
-Use ~ to tell the script you want to reset a component to zero\.
+Use ~ to tell the script you want to reset a component to zero\. See the examples below for modifiers\.
 .
 .SS "Force Modifier"
-Use ! to force set the entire version, and not update any components\.
+Use ! to force set the entire version, and not update any components\. See the examples below for modifiers\.
 .
 .SH "Examples"
 .
@@ -95,13 +152,22 @@ $versionutil !2\.3\.0 +patch
 2\.3\.0
 .
 .SH "Printing Components"
-$versionutil 1\.2\.3 \-\-print\-major 1
+$versionutil 1\.2\.3 \-\-print\-major
+.
+.br
+1
 .
 .P
-$versionutil 1\.2\.3 \-\-print\-minor 2
+$versionutil 1\.2\.3 \-\-print\-minor
+.
+.br
+2
 .
 .P
-$versionutil 1\.2\.3 \-\-print\-patch 3
+$versionutil 1\.2\.3 \-\-print\-patch
+.
+.br
+3
 .
 .P
 $versionutil 1\.2\.3\-alpha\-06 \-\-print\-tag \-alpha\-06
@@ -118,6 +184,42 @@ $versionutil 1\.2\.~ \-\-print\-patch 0
 .P
 $versionutil !~\.3\.1 \-\-print\-major 0
 .
+.SH "Comparing Versions Examples"
+$versionutil 1\.2\.5 \-\-compare 1\.2\.4
+.
+.br
+gt
+.
+.P
+$versionutil 1\.2\.3 \-\-compare 1\.2\.4
+.
+.br
+lt
+.
+.P
+$versionutil 1\.2\.3 \-\-compare 1\.2\.3
+.
+.br
+eq
+.
+.P
+$versionutil 1\.2\.3 \-\-lt 1\.2\.2
+.
+.br
+false
+.
+.P
+$versionutil 1\.2\.4 \-\-gt 1\.2\.2
+.
+.br
+true
+.
+.P
+$versionutil 1\.2\.3 \-\-eq 1\.2\.3
+.
+.br
+true
+.
 .SH "Tests"
 You can run the internal unit tests:
 .
@@ -125,4 +227,4 @@ You can run the internal unit tests:
 $versionutil \-\-test
 .
 .SH "Author"
-
+Aaron Smith
