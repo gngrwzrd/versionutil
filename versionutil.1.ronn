@@ -115,20 +115,20 @@ $versionutil 1.2.3 --print-minor
 $versionutil 1.2.3 --print-patch    
 3
 
-$versionutil 1.2.3-alpha-06 --print-tag
+$versionutil 1.2.3-alpha-06 --print-tag    
 -alpha-06
 
-$versionutil 1.2.3+beta-rc1 --print-tag
+$versionutil 1.2.3+beta-rc1 --print-tag    
 +beta-rc1
 
 ## Printing with Modifiers
 
 All modifiers are applied first.
 
-$versionutil 1.2.~ --print-patch
+$versionutil 1.2.~ --print-patch    
 0
 
-$versionutil !~.3.1 --print-major
+$versionutil !~.3.1 --print-major    
 0
 
 ## Comparing Versions Examples

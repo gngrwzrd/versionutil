@@ -170,19 +170,31 @@ $versionutil 1\.2\.3 \-\-print\-patch
 3
 .
 .P
-$versionutil 1\.2\.3\-alpha\-06 \-\-print\-tag \-alpha\-06
+$versionutil 1\.2\.3\-alpha\-06 \-\-print\-tag
+.
+.br
+\-alpha\-06
 .
 .P
-$versionutil 1\.2\.3+beta\-rc1 \-\-print\-tag +beta\-rc1
+$versionutil 1\.2\.3+beta\-rc1 \-\-print\-tag
+.
+.br
++beta\-rc1
 .
 .SH "Printing with Modifiers"
 All modifiers are applied first\.
 .
 .P
-$versionutil 1\.2\.~ \-\-print\-patch 0
+$versionutil 1\.2\.~ \-\-print\-patch
+.
+.br
+0
 .
 .P
-$versionutil !~\.3\.1 \-\-print\-major 0
+$versionutil !~\.3\.1 \-\-print\-major
+.
+.br
+0
 .
 .SH "Comparing Versions Examples"
 $versionutil 1\.2\.5 \-\-compare 1\.2\.4
