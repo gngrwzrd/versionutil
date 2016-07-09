@@ -1,8 +1,11 @@
+cbin:
+	clang versionutil.c -o versionutil
+
 test:
-	./versionutil --test
+	./versionutil.sh --test
 
 test-debug:
-	./versionutil --test --test-debug
+	./versionutil.sh --test --test-debug
 
 install:
 	ronn versionutil.1.ronn
