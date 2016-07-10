@@ -1,5 +1,5 @@
 cbin:
-	clang versionutil.c -o versionutil
+	clang -g -O0 versionutil.c -o versionutil
 
 test:
 	./versionutil.sh --test

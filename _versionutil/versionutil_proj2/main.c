@@ -51,9 +51,6 @@ bool get_force(char * version) {
 	if(!perform_regex(pattern,version,1,&force)) {
 		return false;
 	}
-	if(!force) {
-		return false;
-	}
 	if(strcmp(force,"!") != 0) {
 		return false;
 	}
@@ -317,41 +314,39 @@ int main(int argc, char ** argv) {
 		ipatch++;
 	}
 	
-	if(print_major) {
-		printf("%d\n",imajor);
+	if(print_patch) {
+		printf("%s",patch);
 		exit(0);
 	}
 	
 	if(print_minor) {
-		printf("%d\n",iminor);
+		printf("%s",minor);
 		exit(0);
 	}
 	
-	if(print_patch) {
-		printf("%d\n",ipatch);
+	if(print_major) {
+		printf("%s",major);
 		exit(0);
 	}
 	
 	if(print_tag) {
-		if(tag) {
-			printf("%s\n",tag);
-		}
+		printf("%s",tag);
 		exit(0);
 	}
 	
 	if(format == version_format_short) {
 		if(tag) {
-			printf("%d.%d%s\n",imajor,iminor,tag);
+			printf("%d.%d%s",imajor,iminor,tag);
 		} else {
-			printf("%d.%d\n",imajor,iminor);
+			printf("%d.%d",imajor,iminor);
 		}
 	}
 	
 	if(format == version_format_long) {
 		if(tag) {
-			printf("%d.%d.%d%s\n",imajor,iminor,ipatch,tag);
+			printf("%d.%d.%d%s",imajor,iminor,ipatch,tag);
 		} else {
-			printf("%d.%d.%d\n",imajor,iminor,ipatch);
+			printf("%d.%d.%d",imajor,iminor,ipatch);
 		}
 	}
 	
