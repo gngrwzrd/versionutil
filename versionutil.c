@@ -17,9 +17,10 @@ typedef struct {
 	//this must be set before calling version_parse
 	char * version_input;
 	
-	//this is set after calling version_parser and all modifiers were applied
+	//this is updated, call version_updated_output.
 	char * version_output;
 	
+	//version format.
 	int format;
 	
 	//wether or not the force ! modifier was present.
@@ -28,24 +29,36 @@ typedef struct {
 	//major component value
 	int major;
 	
+	//whether major was set to 0 because of ~ modifier.
+	bool major_was_zeroed;
+	
 	//minor component value
 	int minor;
+	
+	//whether minor was set to 0 because of ~ modifier.
+	bool minor_was_zeroed;
 	
 	//patch component value
 	int patch;
 	
+	//whether patch was set to 0 because of ~ modifier.
+	bool patch_was_zeroed;
+	
 	//tag component value
 	char * tag;
+	
 } version_t;
 
 //version methods
 void version_init(version_t * version, char * input_verion);
 void version_parse(version_t * version, char ** error);
 void version_free(version_t * version);
+void version_increment(version_t * version, bool incmajor, bool incminor, bool incpatch, char ** error);
 bool version_lt(version_t * version1, version_t * version2);
 bool version_gt(version_t * version1, version_t * version2);
 bool version_eq(version_t * version1, version_t * version2);
 int version_compare(version_t * version1, char * comparator, version_t * version2);
+void version_update_output(version_t * version);
 
 //utility methods used internally to version methods above.
 static bool perform_regex(char * pattern, char * search, int extract_index_match, char ** match_content);
@@ -57,7 +70,10 @@ static char * get_tag(char * version, int format);
 static int validate_format(char * version);
 static bool validate_minor(char * minor);
 static bool validate_patch(char * patch);
-void version_set_output(version_t * version);
+
+void version_init(version_t * version, char * input_version) {
+	version->version_input = input_version;
+}
 
 void version_free(version_t * version) {
 	if(version->tag) {
@@ -66,10 +82,6 @@ void version_free(version_t * version) {
 	if(version->version_output) {
 		free(version->version_output);
 	}
-}
-
-void version_init(version_t * version, char * input_version) {
-	version->version_input = input_version;
 }
 
 void parse_version(version_t * version, char ** error) {
@@ -110,12 +122,14 @@ void parse_version(version_t * version, char ** error) {
 	
 	if(strcmp(major,"~") == 0) {
 		imajor = 0;
+		version->major_was_zeroed = true;
 	} else {
 		imajor = atoi(major);
 	}
 	
 	if(strcmp(minor,"~") == 0) {
 		iminor = 0;
+		version->minor_was_zeroed = true;
 	} else {
 		iminor = atoi(minor);
 	}
@@ -123,6 +137,7 @@ void parse_version(version_t * version, char ** error) {
 	if(version->format == version_format_long) {
 		if(strcmp(patch,"~") == 0) {
 			ipatch = 0;
+			version->patch_was_zeroed = true;
 		} else {
 			ipatch = atoi(patch);
 		}
@@ -155,10 +170,10 @@ void parse_version(version_t * version, char ** error) {
 		version->tag = tag;
 	}
 	
-	version_set_output(version);
+	version_update_output(version);
 }
 
-void version_set_output(version_t * version) {
+void version_update_output(version_t * version) {
 	char * version_out = calloc(1,64);
 	if(version->format == version_format_long) {
 		if(version->tag) {
@@ -183,51 +198,57 @@ void version_increment(version_t * version, bool incmajor, bool incminor, bool i
 		return;
 	}
 	
-	if(incmajor) {
+	if(incmajor && !version->forced && !version->major_was_zeroed) {
 		version->major++;
 	}
 	
-	if(incminor) {
+	if(incminor && !version->forced && !version->minor_was_zeroed) {
 		version->minor++;
 	}
 	
-	if(version->format == version_format_long && incpatch) {
+	if(version->format == version_format_long && incpatch && !version->forced &&!version->patch_was_zeroed) {
 		version->patch++;
 	}
 	
-	version_set_output(version);
+	version_update_output(version);
 	
 	*error = NULL;
 }
 
 bool version_lt(version_t * version1, version_t * version2) {
-	if(version1->major < version2->major) {
-		return true;
+	if(version2->major < version1->major) {
+		return false;
 	}
-	if(version1->minor < version2->minor) {
-		return true;
+	if(version2->minor < version1->minor) {
+		return false;
 	}
-	if(version1->format == version_format_long && version1->format == version2->format) {
-		if(version1->patch < version2->patch) {
-			return true;
+	if(version2->format == version_format_long && version1->format == version2->format) {
+		if(version2->patch < version1->patch) {
+			return false;
 		}
 	}
-	return false;
+	if(version_eq(version1, version2)) {
+		return false;
+	}
+	return true;
 }
 
 bool version_gt(version_t * version1, version_t * version2) {
-	if(version1->major > version2->major) {
-		return true;
+	if(version2->major > version1->major) {
+		return false;
 	}
-	if(version1->minor > version2->minor) {
-		return true;
+	if(version2->minor > version1->minor) {
+		return false;
 	}
-	if(version1->format == version_format_long && version1->format == version2->format) {
-		if(version1->patch > version2->patch) {
-			return true;
+	if(version2->format == version_format_long && version1->format == version2->format) {
+		if(version2->patch > version1->patch) {
+			return false;
 		}
 	}
-	return false;
+	if(version_eq(version1, version2)) {
+		return false;
+	}
+	return true;
 }
 
 bool version_eq(version_t * version1, version_t * version2) {
