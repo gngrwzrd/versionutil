@@ -42,17 +42,17 @@ Versions support a tag - a suffix after the version that's appended.
 It supports this format only
 
 ````
-^[-|+][a-zA-Z0-9]*$
+[-|+][a-zA-Z0-9]*$
 ````
 
 That is, the version can be formatted like this:
 
 ````
 short version:
-major.minor(^[-|+][a-zA-Z0-9]*$)
+major.minor([-|+][a-zA-Z0-9]*$)
 
 long version:
-major.minor.patch(^[-|+][a-zA-Z0-9]*$)
+major.minor.patch([-|+][a-zA-Z0-9]*$)
 ````
 
 # Printing Components
