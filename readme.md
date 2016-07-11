@@ -2,6 +2,11 @@
 
 Increments, prints, and compares version numbers
 
+# Language
+
+This started out as bash only (versionutil.sh), but for laughs there's
+a C version versionutil.c.
+
 # Installation
 
 sudo make install
