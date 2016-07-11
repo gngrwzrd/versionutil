@@ -67,7 +67,11 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+patch"
+            argument = "--lt"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "1.2.4"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
