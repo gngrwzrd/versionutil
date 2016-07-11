@@ -24,7 +24,7 @@
 
 /* Begin PBXFileReference section */
 		073FC5801D32AF2C00A2C598 /* versionutil_xcode */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = versionutil_xcode; sourceTree = BUILT_PRODUCTS_DIR; };
-		073FC58A1D32AF8700A2C598 /* versionutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = versionutil.c; path = ../../versionutil.c; sourceTree = "<group>"; };
+		073FC58A1D32AF8700A2C598 /* versionutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = versionutil.c; path = ../versionutil.c; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -239,6 +239,7 @@
 				073FC5891D32AF2C00A2C598 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

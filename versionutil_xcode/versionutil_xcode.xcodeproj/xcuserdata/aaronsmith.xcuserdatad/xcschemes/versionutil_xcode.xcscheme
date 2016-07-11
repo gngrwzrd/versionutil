@@ -67,11 +67,11 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--lt"
+            argument = "--compare"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "1.2.4"
+            argument = "1."
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
