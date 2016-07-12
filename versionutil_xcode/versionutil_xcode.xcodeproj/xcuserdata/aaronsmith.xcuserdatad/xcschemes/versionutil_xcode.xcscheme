@@ -63,16 +63,16 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "1.4.3"
+            argument = "1.~+-alpha"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--compare"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "1.3.4"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

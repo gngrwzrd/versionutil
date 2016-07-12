@@ -70,6 +70,7 @@ static char * get_tag(char * version, int format);
 static int validate_format(char * version);
 static bool validate_minor(char * minor);
 static bool validate_patch(char * patch);
+static bool validate_tag(char * tag);
 
 void version_init(version_t * version, char * input_version) {
 	version->version_input = input_version;
@@ -86,7 +87,7 @@ void version_free(version_t * version) {
 
 void parse_version(version_t * version, char ** error) {
 	if(!version->version_input) {
-		*error = "Invalid version input";
+		*error = "Invalid version format";
 		return;
 	}
 	
@@ -97,6 +98,12 @@ void parse_version(version_t * version, char ** error) {
 	}
 	version->format = format;
 	
+	char * tag = get_tag(version->version_input,version->format);
+	if(tag && !validate_tag(tag)) {
+		*error = "Invalid version format";
+		return;
+	}
+	
 	bool forced = get_force(version->version_input);
 	char * major = get_major(version->version_input);
 	char * minor = get_minor(version->version_input);
@@ -104,21 +111,25 @@ void parse_version(version_t * version, char ** error) {
 	if(format == version_format_long) {
 		patch = get_patch(version->version_input);
 	}
-	char * tag = get_tag(version->version_input,version->format);
-	
-	int imajor = 0;
-	int iminor = 0;
-	int ipatch = 0;
 	
 	if(!major) {
-		*error = "Invalid component (major)";
+		*error = "Invalid version format";
 		return;
 	}
 	
 	if(!minor) {
-		*error = "Invalid component (minor)";
+		*error = "Invalid version format";
 		return;
 	}
+	
+	if(version->format == version_format_long && !patch) {
+		*error = "Invalid version format";
+		return;
+	}
+	
+	int imajor = 0;
+	int iminor = 0;
+	int ipatch = 0;
 	
 	if(strcmp(major,"~") == 0) {
 		imajor = 0;
@@ -134,7 +145,7 @@ void parse_version(version_t * version, char ** error) {
 		iminor = atoi(minor);
 	}
 	
-	if(version->format == version_format_long) {
+	if(patch && version->format == version_format_long) {
 		if(strcmp(patch,"~") == 0) {
 			ipatch = 0;
 			version->patch_was_zeroed = true;
@@ -144,12 +155,12 @@ void parse_version(version_t * version, char ** error) {
 	}
 	
 	if(!validate_minor(minor)) {
-		*error = "Invalid component (minor)";
+		*error = "Invalid version format";
 		return;
 	}
 	
 	if(version->format == version_format_long && patch && !validate_patch(patch)) {
-		*error = "Invalid component (patch)";
+		*error = "Invalid version format";
 		return;
 	}
 	
@@ -421,6 +432,10 @@ bool validate_patch(char * patch) {
 	return perform_regex("^([0-9]*)|~?$",patch,1,NULL);
 }
 
+bool validate_tag(char * tag) {
+	return perform_regex("^([-|+][a-zA-Z0-9]*)$",tag,1,NULL);
+}
+
 int main(int argc, char ** argv) {
 	if(argc < 2) {
 		printf("Version argument required.\n");
@@ -514,7 +529,7 @@ int main(int argc, char ** argv) {
 		}
 		
 		if(version.format != compare_version.format) {
-			printf("Compare Format Mismatch\n");
+			printf("Invalid version format\n");
 			exit_status = 1;
 			goto cleanup;
 		}

@@ -70,19 +70,19 @@ assert "$output" "Invalid version format"
 
 echo_test "45TGH"
 output=$($BIN '1.2.3' --compare 1.2.)
-assert "$output" "Invalid comparison version format"
+assert "$output" "Invalid version format"
 
 echo_test "4X43X"
 output=$($BIN '1.2.3' --compare 1.)
-assert "$output" "Versions can't be compared, format mismatch"
+assert "$output" "Invalid version format"
 
 echo_test "90ORL"
 output=$($BIN '1.2.3' --compare 1.2)
-assert "$output" "Versions can't be compared, format mismatch"
+assert "$output" "Invalid version format"
 
 echo_test "DL43"
 output=$($BIN '1.2' --compare 1.2.4)
-assert "$output" "Versions can't be compared, format mismatch"
+assert "$output" "Invalid version format"
 
 ##############################################
 

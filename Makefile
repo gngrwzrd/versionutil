@@ -1,11 +1,14 @@
 cbin:
 	clang -g -O0 versionutil.c -o versionutil
 
-test:
-	./versionutil.sh --test
+#lib:
+#	clang
 
-test-debug:
-	./versionutil.sh --test --test-debug
+test-c:
+	./test './versionutil'
+
+test-sh:
+	./test ./versionutil.sh
 
 install:
 	ronn versionutil.1.ronn
