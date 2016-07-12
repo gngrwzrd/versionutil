@@ -8,6 +8,7 @@ assert() {
 		exit 1
 	fi
 }
+
 echo_test() {
 	echo "$1"
 }
