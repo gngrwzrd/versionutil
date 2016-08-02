@@ -34,7 +34,7 @@ validate_tag() {
 			:
 		else
 			echo "Invalid version format"
-			exit 1	
+			exit 1
 		fi
 	fi
 }
@@ -44,13 +44,12 @@ getForce() {
 		echo ''
 		return
 	fi
-	force=''
 	force_version=$1
 	force_regex="^(!)?"
 	if [[ $force_version =~ $force_regex ]]; then
 		force_version="${BASH_REMATCH[1]}"
 	fi
-	echo $force_version
+	echo "$force_version"
 }
 
 getMajor() {
@@ -64,7 +63,7 @@ getMajor() {
 	if [[ $major_version =~ $major_regex ]]; then
 		major_major="${BASH_REMATCH[2]}"
 	fi
-	echo $major_major
+	echo "$major_major"
 }
 
 getMinor() {
@@ -78,7 +77,7 @@ getMinor() {
 	if [[ $minor_version =~ $minor_regex ]]; then
 		minor_minor="${BASH_REMATCH[3]}"
 	fi
-	echo $minor_minor
+	echo "$minor_minor"
 }
 
 getPatch() {
@@ -92,7 +91,7 @@ getPatch() {
 		patch_regex="^(!)?([0-9]*|~?)\.([0-9]*|~?)\.([0-9]*|~?)"
 		if [[ $patch_version =~ $patch_regex ]]; then
 			patch_patch="${BASH_REMATCH[4]}"
-			echo $patch_patch
+			echo "$patch_patch"
 		fi
 	elif [ "$FORMAT" = "short" ]; then
 		echo ""
@@ -117,7 +116,7 @@ getTag() {
 			tag_tag="${BASH_REMATCH[4]}"
 		fi
 	fi
-	echo $tag_tag
+	echo "$tag_tag"
 }
 
 compare() {
@@ -129,7 +128,7 @@ compare() {
 	right_minor=$6
 	right_patch=$7
 	if [ "$compare" = "compare" ]; then
-		if [ $FORMAT = "long" ]; then
+		if [ "$FORMAT" = "long" ]; then
 			if [ "$left_major" = "$right_major" ] && [ "$left_minor" = "$right_minor" ] && [ "$left_patch" = "$right_patch" ]; then
 				echo "eq"
 				return
@@ -140,16 +139,16 @@ compare() {
 				return
 			fi
 		fi
-		if (( $left_major > $right_major )); then
+		if (( left_major > right_major )); then
 			echo "gt"
 			return
 		fi
-		if (( $left_minor > $right_minor )); then
+		if (( left_minor > right_minor )); then
 			echo "gt"
 			return
 		fi
 		if [ "$FORMAT" = "long" ]; then
-			if (( $left_patch > $right_patch )); then
+			if (( left_patch > right_patch )); then
 				echo "gt"
 				return
 			fi
@@ -208,7 +207,7 @@ compare() {
 				return
 			fi
 		fi
-		
+
 		echo "false"
 	fi
 }
@@ -226,7 +225,6 @@ echo_test() {
 }
 
 #set default vars
-HELP=false
 INC_MAJOR=false
 INC_MINOR=false
 INC_PATCH=false
@@ -306,11 +304,11 @@ if [ -z "$FORMAT" ]; then
 fi
 
 #grab components from version
-FORCE=$(getForce $VERSION)
-MAJOR=$(getMajor $VERSION)
-MINOR=$(getMinor $VERSION)
-PATCH=$(getPatch $VERSION)
-TAG=$(getTag $VERSION)
+FORCE=$(getForce "$VERSION")
+MAJOR=$(getMajor "$VERSION")
+MINOR=$(getMinor "$VERSION")
+PATCH=$(getPatch "$VERSION")
+TAG=$(getTag "$VERSION")
 NEW_MAJOR=$MAJOR
 NEW_MINOR=$MINOR
 NEW_PATCH=$PATCH
@@ -337,18 +335,18 @@ if [ "$NEW_PATCH" = "~" ]; then
 fi
 
 #increment major if force isn't present
-if [ "$INC_MAJOR" = 'true' ] && [ -z $FORCE ] && [ -z $MAJOR_ZEROED ]; then
-	NEW_MAJOR=$(($NEW_MAJOR + 1))
+if [ "$INC_MAJOR" = 'true' ] && [ -z "$FORCE" ] && [ -z "$MAJOR_ZEROED" ]; then
+	NEW_MAJOR=$((NEW_MAJOR + 1))
 fi
 
 #increment minor if force isn't present
-if [ "$INC_MINOR" = 'true' ] && [ -z $FORCE ] && [ -z $MINOR_ZEROED ]; then
-	NEW_MINOR=$(($NEW_MINOR + 1))
+if [ "$INC_MINOR" = 'true' ] && [ -z "$FORCE" ] && [ -z "$MINOR_ZEROED" ]; then
+	NEW_MINOR=$((NEW_MINOR + 1))
 fi
 
 #increment patch if force isn't present
-if [ "$INC_PATCH" = "true" ] && [ -z $FORCE ] && [ -z $PATCH_ZEROED ] && [ "$FORMAT" != "short" ]; then
-	NEW_PATCH=$(($NEW_PATCH + 1))
+if [ "$INC_PATCH" = "true" ] && [ -z "$FORCE" ] && [ -z "$PATCH_ZEROED" ] && [ "$FORMAT" != "short" ]; then
+	NEW_PATCH=$((NEW_PATCH + 1))
 fi
 
 #the regexes to grab each component are a little loose (on purpose),
@@ -358,7 +356,7 @@ if [ ! "$NEW_MAJOR" ]; then
 	echo "Invalid version format"
 	exit 1
 fi
-	
+
 if [ ! "$NEW_MINOR" ]; then
 	echo "Invalid version format"
 	exit 1
@@ -367,7 +365,7 @@ fi
 #validate version for short format
 if [ "$FORMAT" = "short" ]; then
 	validate_minor $NEW_MINOR
-	validate_tag $TAG
+	validate_tag "$TAG"
 fi
 
 #validate version for long format
@@ -378,7 +376,7 @@ if [ "$FORMAT" = "long" ]; then
 	fi
 	validate_patch $NEW_PATCH
 	validate_minor $NEW_MINOR
-	validate_tag $TAG
+	validate_tag "$TAG"
 fi
 
 #print major
@@ -401,33 +399,33 @@ fi
 
 #print tag
 if [ "$PRINT_TAG" = true ]; then
-	echo $TAG
+	echo "$TAG"
 	exit 0
 fi
 
 #compare
 if [ ! -z "$COMPARE" ]; then
-	
+
 	# #make sure comparison formats match
 	compare_format=""
-	
+
 	if [[ "$COMPARE_WITH" =~ $short_regex ]]; then
 		compare_format="short"
 	fi
-	
+
 	if [[ "$COMPARE_WITH" =~ $long_regex ]]; then
 		compare_format="long"
 	fi
-	
+
 	if [ "$FORMAT" != "$compare_format" ]; then
 		echo "Invalid version format"
 		exit 1
 	fi
 
 	#grab components
-	compare_major=$(getMajor $COMPARE_WITH)
-	compare_minor=$(getMinor $COMPARE_WITH)
-	compare_patch=$(getPatch $COMPARE_WITH)
+	compare_major=$(getMajor "$COMPARE_WITH")
+	compare_minor=$(getMinor "$COMPARE_WITH")
+	compare_patch=$(getPatch "$COMPARE_WITH")
 
 	if [ ! "$compare_major" ]; then
 		echo "Invalid version format"
@@ -439,7 +437,7 @@ if [ ! -z "$COMPARE" ]; then
 		exit 1
 	fi
 
-	if [ "$compare_format" = "long" ] && [ -z $compare_patch ]; then
+	if [ "$compare_format" = "long" ] && [ -z "$compare_patch" ]; then
 		echo "Invalid version format"
 		exit 1
 	fi
@@ -447,11 +445,11 @@ if [ ! -z "$COMPARE" ]; then
 	if [  "$compare_major" = "~" ]; then
 		compare_major="0"
 	fi
-	
+
 	if [ "$compare_minor" = "~" ]; then
 		compare_minor="0"
 	fi
-	
+
 	if [ "$compare_patch" = "~" ]; then
 		compare_patch="0"
 	fi
@@ -461,7 +459,7 @@ if [ ! -z "$COMPARE" ]; then
 	fi
 
 	result=$(compare "$COMPARE" "$NEW_MAJOR" "$NEW_MINOR" "$NEW_PATCH" "$compare_major" "$compare_minor" "$compare_patch")
-	echo $result
+	echo "$result"
 	exit 0
 fi
 
