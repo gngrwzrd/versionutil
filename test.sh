@@ -339,6 +339,14 @@ echo_test "93T5"
 output=$($BIN "1.1+04Alpha" --compare "1.2+Alpha")
 assert "$output" "lt"
 
+echo_test "4FHLK"
+output=$($BIN "0.4.27" --compare "0.5.0")
+assert "$output" "lt"
+
+echo_test "4FHLK"
+output=$($BIN "0.4.27" --compare "1.0.0")
+assert "$output" "lt"
+
 echo_test "45TG"
 output=$($BIN "1.2+04Alpha" --compare "1.1+Alpha")
 assert "$output" "gt"

@@ -128,6 +128,7 @@ compare() {
 	right_minor=$6
 	right_patch=$7
 	if [ "$compare" = "compare" ]; then
+
 		if [ "$FORMAT" = "long" ]; then
 			if [ "$left_major" = "$right_major" ] && [ "$left_minor" = "$right_minor" ] && [ "$left_patch" = "$right_patch" ]; then
 				echo "eq"
@@ -139,20 +140,30 @@ compare() {
 				return
 			fi
 		fi
+
 		if (( left_major > right_major )); then
 			echo "gt"
 			return
+		elif (( left_major < right_major )); then
+			echo "lt"
+			return;
 		fi
+
 		if (( left_minor > right_minor )); then
 			echo "gt"
 			return
+		elif (( left_minor < right_minor )); then
+			echo "lt"
+			return
 		fi
+
 		if [ "$FORMAT" = "long" ]; then
 			if (( left_patch > right_patch )); then
 				echo "gt"
 				return
 			fi
 		fi
+
 		echo "lt"
 		return
 	fi
