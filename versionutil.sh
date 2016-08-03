@@ -169,16 +169,16 @@ compare() {
 	fi
 
 	if [ "$compare" = "lt" ]; then
-		if (( "$right_major" < "$left_major" )); then
+		if (( right_major < left_major )); then
 			echo "false"
 			return
 		fi
-		if (( "$right_minor" < "$left_minor" )); then
+		if (( right_minor < left_minor )); then
 			echo "false"
 			return
 		fi
 		if [ "$FORMAT" = "long" ]; then
-			if (( "$right_patch" < "$left_patch" )); then
+			if (( right_patch < left_patch )); then
 				echo "false"
 				return
 			fi
@@ -188,16 +188,16 @@ compare() {
 	fi
 
 	if [ "$compare" = "gt" ]; then
-		if (( "$right_major" > "$left_major" )); then
+		if (( right_major > left_major )); then
 			echo "false"
 			return
 		fi
-		if (( "$right_minor" > "$left_minor" )); then
+		if (( right_minor > left_minor )); then
 			echo "false"
 			return
 		fi
 		if [ "$FORMAT" = "long" ]; then
-			if (( "$right_patch" > "$left_patch" )); then
+			if (( right_patch > left_patch )); then
 				echo "false"
 				return
 			fi
