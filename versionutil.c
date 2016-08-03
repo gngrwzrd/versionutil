@@ -16,37 +16,37 @@ const int version_format_long = 2;
 typedef struct {
 	//this must be set before calling version_parse
 	char * version_input;
-	
+
 	//this is updated, call version_updated_output.
 	char * version_output;
-	
+
 	//version format.
 	int format;
-	
+
 	//wether or not the force ! modifier was present.
 	bool forced;
-	
+
 	//major component value
 	int major;
-	
+
 	//whether major was set to 0 because of ~ modifier.
 	bool major_was_zeroed;
-	
+
 	//minor component value
 	int minor;
-	
+
 	//whether minor was set to 0 because of ~ modifier.
 	bool minor_was_zeroed;
-	
+
 	//patch component value
 	int patch;
-	
+
 	//whether patch was set to 0 because of ~ modifier.
 	bool patch_was_zeroed;
-	
+
 	//tag component value
 	char * tag;
-	
+
 } version_t;
 
 //version methods
@@ -90,20 +90,20 @@ void parse_version(version_t * version, char ** error) {
 		*error = "Invalid version format";
 		return;
 	}
-	
+
 	int format = validate_format(version->version_input);
 	if(format == version_format_none) {
 		*error = "Invalid version format";
 		return;
 	}
 	version->format = format;
-	
+
 	char * tag = get_tag(version->version_input,version->format);
 	if(tag && !validate_tag(tag)) {
 		*error = "Invalid version format";
 		return;
 	}
-	
+
 	bool forced = get_force(version->version_input);
 	char * major = get_major(version->version_input);
 	char * minor = get_minor(version->version_input);
@@ -111,40 +111,40 @@ void parse_version(version_t * version, char ** error) {
 	if(format == version_format_long) {
 		patch = get_patch(version->version_input);
 	}
-	
+
 	if(!major) {
 		*error = "Invalid version format";
 		return;
 	}
-	
+
 	if(!minor) {
 		*error = "Invalid version format";
 		return;
 	}
-	
+
 	if(version->format == version_format_long && !patch) {
 		*error = "Invalid version format";
 		return;
 	}
-	
+
 	int imajor = 0;
 	int iminor = 0;
 	int ipatch = 0;
-	
+
 	if(strcmp(major,"~") == 0) {
 		imajor = 0;
 		version->major_was_zeroed = true;
 	} else {
 		imajor = atoi(major);
 	}
-	
+
 	if(strcmp(minor,"~") == 0) {
 		iminor = 0;
 		version->minor_was_zeroed = true;
 	} else {
 		iminor = atoi(minor);
 	}
-	
+
 	if(patch && version->format == version_format_long) {
 		if(strcmp(patch,"~") == 0) {
 			ipatch = 0;
@@ -153,34 +153,34 @@ void parse_version(version_t * version, char ** error) {
 			ipatch = atoi(patch);
 		}
 	}
-	
+
 	if(!validate_minor(minor)) {
 		*error = "Invalid version format";
 		return;
 	}
-	
+
 	if(version->format == version_format_long && patch && !validate_patch(patch)) {
 		*error = "Invalid version format";
 		return;
 	}
-	
+
 	version->major = -1;
 	version->minor = -1;
 	version->patch = -1;
 	version->tag = NULL;
-	
+
 	version->forced = forced;
 	version->major = imajor;
 	version->minor = iminor;
-	
+
 	if(version->format == version_format_long) {
 		version->patch = ipatch;
 	}
-	
+
 	if(tag) {
 		version->tag = tag;
 	}
-	
+
 	version_update_output(version);
 }
 
@@ -208,21 +208,21 @@ void version_increment(version_t * version, bool incmajor, bool incminor, bool i
 		*error = NULL;
 		return;
 	}
-	
+
 	if(incmajor && !version->forced && !version->major_was_zeroed) {
 		version->major++;
 	}
-	
+
 	if(incminor && !version->forced && !version->minor_was_zeroed) {
 		version->minor++;
 	}
-	
+
 	if(version->format == version_format_long && incpatch && !version->forced &&!version->patch_was_zeroed) {
 		version->patch++;
 	}
-	
+
 	version_update_output(version);
-	
+
 	*error = NULL;
 }
 
@@ -395,26 +395,26 @@ char * get_tag(char * version, int format) {
 int validate_format(char * version) {
 	int res = 0;
 	int format = version_format_none;
-	
+
 	regex_t short_regex;
 	res = regcomp(&short_regex,"^(!)?([0-9]*|~?)\\.([0-9]*|~?)([-+:0-9a-zA-Z]*)?$",REG_EXTENDED);
-	
+
 	regex_t long_regex;
 	res = regcomp(&long_regex,"^(!)?([0-9]*|~?)\\.([0-9]*|~?)\\.([0-9]*|~?)([-+:0-9a-zA-Z]*)?$",REG_EXTENDED);
-	
+
 	regmatch_t matches[16];
 	bzero(matches,sizeof(regmatch_t) * 16);
 	res = regexec(&short_regex,version,16,matches,0);
 	if(res == 0) {
 		format = version_format_short;
 	}
-	
+
 	bzero(matches,sizeof(regmatch_t) * 16);
 	res = regexec(&long_regex,version,16,matches,0);
 	if(res == 0) {
 		format = version_format_long;
 	}
-	
+
 	return format;
 }
 
@@ -441,26 +441,26 @@ int main(int argc, char ** argv) {
 		printf("Version argument required.\n");
 		exit(1);
 	}
-	
+
 	int exit_status = 0;
 	char * error = NULL;
-	
+
 	version_t version;
 	bzero(&version,sizeof(version));
-	
+
 	bool inc_major = false;
 	bool inc_minor = false;
 	bool inc_patch = false;
-	
+
 	bool print_major = false;
 	bool print_minor = false;
 	bool print_patch = false;
 	bool print_tag = false;
-	
+
 	char * compare = false;
 	version_t compare_version;
 	bzero(&compare_version, sizeof(compare_version));
-	
+
 	if(argc >= 2) {
 		version_init(&version,argv[1]);
 		char * arg = NULL;
@@ -503,59 +503,59 @@ int main(int argc, char ** argv) {
 	} else {
 		printf("%s",argv[1]);
 	}
-	
+
 	parse_version(&version,&error);
 	if(error) {
 		printf("%s\n",error);
 		exit_status = 1;
 		goto cleanup;
 	}
-	
+
 	version_increment(&version,inc_major,inc_minor,inc_patch,&error);
 	if(error) {
 		printf("%s\n",error);
 		exit_status = 1;
 		goto cleanup;
 	}
-	
+
 	if(compare != NULL) {
 		version_init(&compare_version,argv[3]);
-		
+
 		parse_version(&compare_version,&error);
 		if(error) {
 			printf("%s\n",error);
 			exit_status = 1;
 			goto cleanup;
 		}
-		
+
 		if(version.format != compare_version.format) {
 			printf("Invalid version format\n");
 			exit_status = 1;
 			goto cleanup;
 		}
-		
+
 		version_increment(&compare_version,inc_major,inc_minor,inc_patch,&error);
 		if(error) {
 			printf("%s\n",error);
 			exit_status = 1;
 			goto cleanup;
 		}
-		
+
 		if(strcmp(compare,"--lt") == 0) {
 			printf("%s\n",version_lt(&version,&compare_version)?"true":"false");
 			goto cleanup;
 		}
-		
+
 		if(strcmp(compare,"--gt") == 0) {
 			printf("%s\n",version_gt(&version,&compare_version)?"true":"false");
 			goto cleanup;
 		}
-		
+
 		if(strcmp(compare,"--eq") == 0) {
 			printf("%s\n",version_eq(&version,&compare_version)?"true":"false");
 			goto cleanup;
 		}
-		
+
 		int res = version_compare(&version, compare, &compare_version);
 		if(res == -1) {
 			printf("lt\n");
@@ -564,36 +564,36 @@ int main(int argc, char ** argv) {
 		} else if (res == 1) {
 			printf("gt\n");
 		}
-		
+
 		goto cleanup;
 	}
-	
+
 	if(print_major) {
 		printf("%d\n",version.major);
 		goto cleanup;
 	}
-	
+
 	if(print_minor) {
 		printf("%d\n",version.minor);
 		goto cleanup;
 	}
-	
+
 	if(version.format == version_format_long && print_patch) {
 		printf("%d\n",version.patch);
 		goto cleanup;
 	}
-	
+
 	if(print_tag && version.tag) {
 		printf("%s\n",version.tag);
 		goto cleanup;
 	}
-	
+
 	printf("%s\n",version.version_output);
 
 cleanup:
-	
+
 	version_free(&version);
 	version_free(&compare_version);
-	
+
 	exit(exit_status);
 }
