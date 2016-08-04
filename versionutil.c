@@ -57,7 +57,7 @@ void version_increment(version_t * version, bool incmajor, bool incminor, bool i
 bool version_lt(version_t * version1, version_t * version2);
 bool version_gt(version_t * version1, version_t * version2);
 bool version_eq(version_t * version1, version_t * version2);
-int version_compare(version_t * version1, char * comparator, version_t * version2);
+int version_compare(version_t * version1, char * comparator, version_t * version2, char ** error);
 void version_update_output(version_t * version);
 
 //utility methods used internally to version methods above.
@@ -227,39 +227,48 @@ void version_increment(version_t * version, bool incmajor, bool incminor, bool i
 }
 
 bool version_lt(version_t * version1, version_t * version2) {
-	if(version2->major < version1->major) {
-		return false;
+	
+	if(version1->major < version2->major) {
+		return true;
 	}
-	if(version2->minor < version1->minor) {
-		return false;
+	
+	if(version1->minor < version2->minor) {
+		return true;
 	}
+	
 	if(version2->format == version_format_long && version1->format == version2->format) {
-		if(version2->patch < version1->patch) {
-			return false;
+		if(version1->patch < version2->patch) {
+			return true;
 		}
 	}
+	
 	if(version_eq(version1, version2)) {
 		return false;
 	}
-	return true;
+	
+	return false;
 }
 
 bool version_gt(version_t * version1, version_t * version2) {
-	if(version2->major > version1->major) {
-		return false;
+	if(version1->major > version2->major) {
+		return true;
 	}
-	if(version2->minor > version1->minor) {
-		return false;
+	
+	if(version1->minor > version2->minor) {
+		return true;
 	}
+	
 	if(version2->format == version_format_long && version1->format == version2->format) {
-		if(version2->patch > version1->patch) {
-			return false;
+		if(version1->patch > version2->patch) {
+			return true;
 		}
 	}
+	
 	if(version_eq(version1, version2)) {
 		return false;
 	}
-	return true;
+	
+	return false;
 }
 
 bool version_eq(version_t * version1, version_t * version2) {
@@ -277,14 +286,34 @@ bool version_eq(version_t * version1, version_t * version2) {
 	return false;
 }
 
-int version_compare(version_t * version1, char * comparator, version_t * version2) {
+int version_compare(version_t * version1, char * comparator, version_t * version2, char ** error) {
 	if(version_eq(version1,version2)) {
 		return 0;
 	}
-	if(version_lt(version1, version2)) {
+	
+	if(version1->major < version2->major) {
 		return -1;
+	} else if(version1->major > version2->major) {
+		return 1;
 	}
-	return 1;
+	
+	if(version1->minor < version2->minor) {
+		return -1;
+	} else if(version1->minor > version2->minor) {
+		return 1;
+	}
+	
+	if(version1->format == version_format_long && version1->format == version2->format) {
+		if(version1->patch < version2->patch) {
+			return -1;
+		} else if(version1->patch > version2->patch) {
+			return 1;
+		}
+	}
+	
+	*error = "Invalid version format";
+	
+	return 0;
 }
 
 bool perform_regex(char * pattern, char * search, int extract_index_match, char ** match_content) {
@@ -556,7 +585,12 @@ int main(int argc, char ** argv) {
 			goto cleanup;
 		}
 
-		int res = version_compare(&version, compare, &compare_version);
+		int res = version_compare(&version, compare, &compare_version, &error);
+		
+		if(error) {
+			printf("%s",error);
+		}
+		
 		if(res == -1) {
 			printf("lt\n");
 		} else if(res == 0) {
